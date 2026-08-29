@@ -3,17 +3,18 @@
     "name": "SpaceCraft 3D",
     "slug": "spacecraft-3d",
     "version": "1.0.0",
+    "description": "Design beautiful 2D and 3D floor plans. Furnish your space with 500+ furniture items, use AI to generate room layouts, and visualize in stunning 3D.",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon-frq.png",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/app-icon-frq.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#0A0E1A"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.placeholder.app",
+      "bundleIdentifier": "com.spacecraft3d.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -21,9 +22,18 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/app-icon-frq.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#0A0E1A"
       },
-      "package": "com.placeholder.app"
+      "package": "com.spacecraft3d.app",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.INTERNET",
+        "android.permission.VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/images/newly.png",
@@ -33,7 +43,10 @@
       "expo-font",
       "expo-router",
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-camera",
+      ["expo-media-library", { "photosPermission": "Allow SpaceCraft 3D to save floor plan exports to your photo library." }],
+      "expo-clipboard"
     ],
     "scheme": "spacecraft3d",
     "experiments": {
