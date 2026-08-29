@@ -123,6 +123,18 @@ export default function PaywallScreen() {
     router.replace('/(tabs)/(projects)');
   };
 
+  const handleSimulatePurchase = async () => {
+    console.log('[Paywall] DEV: Simulating subscription purchase');
+    if (isWeb) {
+      mockWebPurchase();
+      console.log('[Paywall] DEV: Web mock purchase applied — isSubscribed = true');
+    } else {
+      await mockNativePurchase();
+      console.log('[Paywall] DEV: Native mock purchase applied — isSubscribed = true');
+    }
+    router.replace('/(tabs)/(projects)');
+  };
+
   const handleWebMockPurchase = async () => {
     if (!selectedPackage) return;
     console.log('[Paywall] Web mock purchase pressed');
@@ -359,6 +371,16 @@ export default function PaywallScreen() {
 
           <View style={{ height: 24 }} />
         </ScrollView>
+
+        {/* ── Dev simulate banner ──────────────────────────────────────────── */}
+        {__DEV__ && (
+          <View style={styles.devBanner}>
+            <Text style={styles.devBannerLabel}>DEV MODE</Text>
+            <TouchableOpacity style={styles.devSimulateBtn} onPress={handleSimulatePurchase}>
+              <Text style={styles.devSimulateBtnText}>⚡ Simulate Subscription</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ── Bottom CTA ───────────────────────────────────────────────────── */}
         <View style={styles.bottomBar}>
@@ -828,6 +850,38 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 15,
     opacity: 0.7,
+  },
+  // ── Dev simulate banner ───────────────────────────────────────────────────
+  devBanner: {
+    marginHorizontal: 20,
+    marginBottom: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245,158,11,0.35)',
+    borderStyle: 'dashed',
+    backgroundColor: 'rgba(245,158,11,0.07)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  devBannerLabel: {
+    color: '#F59E0B',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+  },
+  devSimulateBtn: {
+    backgroundColor: 'rgba(245,158,11,0.18)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  devSimulateBtnText: {
+    color: '#F59E0B',
+    fontSize: 13,
+    fontWeight: '700',
   },
   // ── Web mock dialog ───────────────────────────────────────────────────────
   dialogOverlay: {
