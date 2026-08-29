@@ -2,7 +2,7 @@
   "expo": {
     "name": "SpaceCraft 3D",
     "slug": "spacecraft-3d-designer-vzczux",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Design beautiful 2D and 3D floor plans. Furnish your space with 500+ furniture items, use AI to generate room layouts, and visualize in stunning 3D.",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon-frq.png",
@@ -26,8 +26,8 @@
         "foregroundImage": "./assets/images/app-icon-frq.png",
         "backgroundColor": "#0A0E1A"
       },
-      "package": "com.spacecraftapp.design",
-      "versionCode": 1,
+      "package": "com.spacecraftapp.app",
+      "versionCode": 2,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES",
