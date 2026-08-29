@@ -27,6 +27,7 @@ import {
   RotateCcw,
 } from 'lucide-react-native';
 import { COLORS } from '@/constants/Colors';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
 import { FloorPlanCanvas, EditorTool } from '@/components/FloorPlanCanvas';
 import { ToolButton } from '@/components/ToolButton';
@@ -45,6 +46,7 @@ export default function EditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { isSubscribed } = useSubscription();
   const {
     projects,
     updateProject,
@@ -223,6 +225,11 @@ export default function EditorScreen() {
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => {
+              if (!isSubscribed) {
+                console.log('[Editor] 3D View blocked — not subscribed, opening paywall');
+                router.push('/paywall');
+                return;
+              }
               console.log('[Editor] Open 3D view');
               router.push(`/view3d/${project.id}`);
             }}
@@ -230,6 +237,11 @@ export default function EditorScreen() {
           >
             <Box size={18} color="#fff" />
             <Text style={styles.view3dText}>3D</Text>
+            {!isSubscribed && (
+              <View style={styles.crownBadge}>
+                <Text style={styles.crownBadgeText}>👑</Text>
+              </View>
+            )}
           </AnimatedPressable>
         </View>
       </View>
@@ -395,11 +407,28 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
+    position: 'relative',
   },
   view3dText: {
     color: '#fff',
     fontSize: 13,
     fontWeight: '700',
+  },
+  crownBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#F59E0B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: COLORS.background,
+  },
+  crownBadgeText: {
+    fontSize: 10,
   },
   toolbar: {
     backgroundColor: COLORS.surface,

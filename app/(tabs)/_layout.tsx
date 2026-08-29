@@ -2,6 +2,7 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 import { COLORS } from '@/constants/Colors';
+import { useSubscriptionGuard } from "@/hooks/useSubscriptionGuard";
 
 const TABS: TabBarItem[] = [
   { name: '(projects)', route: '/(tabs)/(projects)', icon: 'folder-open', label: 'Projects' },
@@ -11,6 +12,8 @@ const TABS: TabBarItem[] = [
 ];
 
 export default function TabLayout() {
+  useSubscriptionGuard();
+
   return (
     <Tabs
       tabBar={() => (

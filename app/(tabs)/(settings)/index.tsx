@@ -24,9 +24,12 @@ import {
   ChevronRight,
   Palette,
 } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { COLORS } from '@/constants/Colors';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
 import { AnimatedPressable } from '@/components/AnimatedPressable';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 type Unit = 'metric' | 'imperial';
 type GridSize = '10' | '20' | '50';
@@ -34,7 +37,9 @@ type ThemeMode = 'system' | 'light' | 'dark';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { projects } = useFloorPlan();
+  const { isSubscribed } = useSubscription();
 
   const [unit, setUnit] = useState<Unit>('metric');
   const [gridSize, setGridSize] = useState<GridSize>('20');
@@ -85,6 +90,37 @@ export default function SettingsScreen() {
       <Animated.View style={[styles.header, { opacity: headerOpacity }]}>
         <Text style={styles.headerTitle}>Settings</Text>
       </Animated.View>
+
+      {/* SpaceCraft Pro Banner — shown only when not subscribed */}
+      {!isSubscribed && (
+        <AnimatedPressable
+          onPress={() => {
+            console.log('[Settings] SpaceCraft Pro banner pressed');
+            router.push('/paywall');
+          }}
+          style={styles.proBannerWrap}
+        >
+          <LinearGradient
+            colors={['#1A2540', '#0F1E38']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.proBanner}
+          >
+            <View style={styles.proBannerLeft}>
+              <View style={styles.proCrownWrap}>
+                <Text style={styles.proCrown}>👑</Text>
+              </View>
+              <View>
+                <Text style={styles.proBannerTitle}>SpaceCraft Pro</Text>
+                <Text style={styles.proBannerSub}>Unlock 3D View, unlimited projects & more</Text>
+              </View>
+            </View>
+            <View style={styles.proUpgradeBtn}>
+              <Text style={styles.proUpgradeBtnText}>Upgrade</Text>
+            </View>
+          </LinearGradient>
+        </AnimatedPressable>
+      )}
 
       {/* Profile Card */}
       <View style={styles.profileCard}>
@@ -599,5 +635,59 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     paddingVertical: 8,
+  },
+  // Pro banner
+  proBannerWrap: {
+    marginHorizontal: 16,
+    marginBottom: 20,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(79,142,247,0.3)',
+  },
+  proBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    gap: 12,
+  },
+  proBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  proCrownWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(79,142,247,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  proCrown: {
+    fontSize: 22,
+  },
+  proBannerTitle: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  proBannerSub: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  proUpgradeBtn: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  proUpgradeBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
   },
 });
