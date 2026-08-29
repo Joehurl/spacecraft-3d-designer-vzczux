@@ -10,10 +10,12 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ChevronRight } from 'lucide-react-native';
 import { COLORS } from '@/constants/Colors';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
 import { DesignCard } from '@/components/DesignCard';
 import { AnimatedPressable } from '@/components/AnimatedPressable';
+import { ROOM_TEMPLATES } from '@/data/templates';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -143,6 +145,39 @@ export default function ExploreScreen() {
         </View>
       </View>
 
+      {/* Mood Board Feature Card */}
+      <View style={styles.section}>
+        <AnimatedPressable
+          onPress={() => {
+            console.log('[Explore] Create Mood Board card pressed');
+            router.push('/mood-board');
+          }}
+          style={styles.aiCardOuter}
+        >
+          <LinearGradient
+            colors={['#1a0a2e', '#2d1b69', '#1a0a2e']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.aiCard}
+          >
+            <View style={styles.aiCardOverlay} />
+            <View style={styles.aiCardContent}>
+              <View style={[styles.aiCardBadge, { backgroundColor: 'rgba(168,85,247,0.2)', borderColor: 'rgba(168,85,247,0.4)' }]}>
+                <Text style={[styles.aiCardBadgeText, { color: '#A855F7' }]}>✦ New Feature</Text>
+              </View>
+              <Text style={styles.aiCardTitle}>🎨 Mood Board Creator</Text>
+              <Text style={styles.aiCardSub}>
+                Pin colors, furniture, and inspiration images to a visual board linked to your projects
+              </Text>
+              <View style={[styles.aiCardBtn, { backgroundColor: '#A855F7' }]}>
+                <Text style={styles.aiCardBtnText}>Create Mood Board →</Text>
+              </View>
+            </View>
+            <Text style={styles.aiCardEmojis}>🎨🛋️🖼️🏷️</Text>
+          </LinearGradient>
+        </AnimatedPressable>
+      </View>
+
       {/* AI Designer Feature Card */}
       <View style={styles.section}>
         <AnimatedPressable
@@ -174,6 +209,71 @@ export default function ExploreScreen() {
             <Text style={styles.aiCardEmojis}>🛋️🪴🖼️✨</Text>
           </LinearGradient>
         </AnimatedPressable>
+      </View>
+
+      {/* Room Templates Section */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>📐 Room Templates</Text>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Explore] Browse all templates pressed');
+              router.push('/templates');
+            }}
+            style={styles.browseAllBtn}
+          >
+            <Text style={styles.browseAllText}>Browse All</Text>
+            <ChevronRight size={14} color={COLORS.primary} />
+          </AnimatedPressable>
+        </View>
+        <Text style={styles.sectionSub}>50+ pre-built layouts ready to use</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.templatesScroll}
+          contentContainerStyle={styles.templatesScrollContent}
+        >
+          {ROOM_TEMPLATES.filter(t => t.popular).slice(0, 5).map(template => (
+            <AnimatedPressable
+              key={template.id}
+              onPress={() => {
+                console.log('[Explore] Template card pressed:', template.id, template.name);
+                router.push('/templates');
+              }}
+              style={styles.exploreTemplateCard}
+            >
+              <LinearGradient
+                colors={[template.previewColor + '44', template.previewColor + '11']}
+                style={styles.exploreTemplateGradient}
+              >
+                <Text style={styles.exploreTemplateEmoji}>{template.emoji}</Text>
+                <Text style={styles.exploreTemplateName} numberOfLines={2}>{template.name}</Text>
+                <View style={styles.exploreTemplateMeta}>
+                  <Text style={styles.exploreTemplateStyle}>
+                    {template.style.charAt(0).toUpperCase() + template.style.slice(1)}
+                  </Text>
+                  <Text style={styles.exploreTemplateSize}>
+                    {template.size.charAt(0).toUpperCase() + template.size.slice(1)}
+                  </Text>
+                </View>
+              </LinearGradient>
+            </AnimatedPressable>
+          ))}
+          {/* Browse all card */}
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Explore] Browse all templates card pressed');
+              router.push('/templates');
+            }}
+            style={styles.exploreTemplateCard}
+          >
+            <View style={[styles.exploreTemplateGradient, styles.browseAllCard]}>
+              <Text style={styles.browseAllCardEmoji}>📐</Text>
+              <Text style={styles.browseAllCardText}>Browse All</Text>
+              <Text style={styles.browseAllCardSub}>50+ templates</Text>
+            </View>
+          </AnimatedPressable>
+        </ScrollView>
       </View>
 
       {/* Trending Styles */}
@@ -320,6 +420,87 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 28,
     gap: 14,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sectionSub: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    marginTop: -8,
+  },
+  browseAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  browseAllText: {
+    color: COLORS.primary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  templatesScroll: {
+    marginHorizontal: -16,
+  },
+  templatesScrollContent: {
+    paddingHorizontal: 16,
+    gap: 12,
+    flexDirection: 'row',
+  },
+  exploreTemplateCard: {
+    width: 140,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  exploreTemplateGradient: {
+    padding: 14,
+    height: 160,
+    justifyContent: 'flex-end',
+    gap: 4,
+  },
+  exploreTemplateEmoji: {
+    fontSize: 28,
+    marginBottom: 4,
+  },
+  exploreTemplateName: {
+    color: COLORS.text,
+    fontSize: 13,
+    fontWeight: '700',
+    lineHeight: 17,
+  },
+  exploreTemplateMeta: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  exploreTemplateStyle: {
+    color: COLORS.textSecondary,
+    fontSize: 11,
+  },
+  exploreTemplateSize: {
+    color: COLORS.textTertiary,
+    fontSize: 11,
+  },
+  browseAllCard: {
+    backgroundColor: COLORS.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  browseAllCardEmoji: {
+    fontSize: 28,
+  },
+  browseAllCardText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  browseAllCardSub: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
   },
   aiCardOuter: {
     borderRadius: 20,

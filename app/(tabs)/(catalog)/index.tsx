@@ -22,6 +22,7 @@ import { AnimatedPressable } from '@/components/AnimatedPressable';
 import { BottomSheet } from '@/components/BottomSheet';
 import { ColorPicker } from '@/components/ColorPicker';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
+import { generateRecommendations } from '@/utils/recommendationEngine';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_W = (SCREEN_W - 48) / 2;
@@ -86,7 +87,19 @@ function CollectionCard({
 
 export default function CatalogScreen() {
   const insets = useSafeAreaInsets();
-  const { favorites, toggleFavorite } = useFloorPlan();
+  const { favorites, toggleFavorite, projects } = useFloorPlan();
+
+  // Recommended for You — based on most recently edited project
+  const catalogRecommendations = useMemo(() => {
+    const sorted = [...projects].sort((a, b) =>
+      new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+    const latestProject = sorted[0];
+    if (!latestProject || latestProject.rooms.length === 0) return [];
+    const room = latestProject.rooms[0];
+    const recs = generateRecommendations(room, latestProject);
+    return recs.slice(0, 4).map(r => r.item);
+  }, [projects]);
 
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
@@ -292,6 +305,44 @@ export default function CatalogScreen() {
         maxToRenderPerBatch={8}
         ListHeaderComponent={
           <View style={styles.listHeader}>
+            {/* Recommended for You */}
+            {catalogRecommendations.length > 0 && (
+              <View style={styles.recForYouSection}>
+                <View style={styles.recForYouHeader}>
+                  <Sparkles size={15} color={COLORS.accent} />
+                  <Text style={styles.recForYouTitle}>Recommended for You</Text>
+                </View>
+                <Text style={styles.recForYouSubtitle}>Based on your latest project</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.recForYouScroll}
+                >
+                  {catalogRecommendations.map(item => (
+                    <AnimatedPressable
+                      key={item.id}
+                      onPress={() => {
+                        console.log('[Catalog] Recommended item pressed:', item.id, item.name);
+                        handleItemPress(item);
+                      }}
+                      style={styles.recForYouCard}
+                    >
+                      <View style={[styles.recForYouEmoji, { backgroundColor: (CATEGORY_COLORS[item.category] ?? COLORS.primary) + '22' }]}>
+                        <Text style={styles.recForYouEmojiText}>{item.emoji}</Text>
+                      </View>
+                      <Text style={styles.recForYouName} numberOfLines={2}>{item.name}</Text>
+                      {item.price !== undefined && (
+                        <Text style={styles.recForYouPrice}>${Number(item.price).toLocaleString()}</Text>
+                      )}
+                      <View style={styles.recForYouBadge}>
+                        <Text style={styles.recForYouBadgeText}>For you</Text>
+                      </View>
+                    </AnimatedPressable>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
             {/* Collections Section */}
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Collections</Text>
@@ -947,6 +998,76 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontSize: 14,
     fontWeight: '600',
+  },
+  // Recommended for You section
+  recForYouSection: {
+    gap: 8,
+    marginTop: 4,
+  },
+  recForYouHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  recForYouTitle: {
+    color: COLORS.accent,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  recForYouSubtitle: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    marginTop: -4,
+  },
+  recForYouScroll: {
+    gap: 10,
+    paddingRight: 4,
+  },
+  recForYouCard: {
+    width: 120,
+    backgroundColor: COLORS.surface,
+    borderRadius: 14,
+    padding: 12,
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: COLORS.accent + '30',
+  },
+  recForYouEmoji: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recForYouEmojiText: {
+    fontSize: 28,
+  },
+  recForYouName: {
+    color: COLORS.text,
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 15,
+  },
+  recForYouPrice: {
+    color: COLORS.accent,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  recForYouBadge: {
+    backgroundColor: COLORS.accentMuted,
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  recForYouBadgeText: {
+    color: COLORS.accent,
+    fontSize: 9,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   // Sort sheet
   sortOption: {

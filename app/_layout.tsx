@@ -16,7 +16,10 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
 import { FloorPlanProvider } from "@/contexts/FloorPlanContext";
+import { MoodBoardProvider } from "@/contexts/MoodBoardContext";
+import { HistoryProvider } from "@/contexts/HistoryContext";
 import { SubscriptionProvider, useSubscription } from "@/contexts/SubscriptionContext";
+import { UserProvider } from "@/contexts/UserContext";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { COLORS } from "@/constants/Colors";
 import { isOnboardingComplete } from "@/utils/onboardingStorage";
@@ -116,68 +119,97 @@ export default function RootLayout() {
 
   return (
     <SubscriptionProvider>
-          <SubscriptionRedirect />
-  <DevErrorBoundary>
-      <StatusBar style="light" animated />
-      <ThemeProvider value={CustomDarkTheme}>
-        <SafeAreaProvider>
-          <WidgetProvider>
-            <FloorPlanProvider>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                {onboardingComplete === false && pathname !== "/auth" && pathname !== "/paywall" && pathname !== "/auth-popup" && pathname !== "/auth-callback" && <Redirect href="/onboarding" />}
+      <UserProvider>
+        <SubscriptionRedirect />
+        <DevErrorBoundary>
+          <StatusBar style="light" animated />
+          <ThemeProvider value={CustomDarkTheme}>
+            <SafeAreaProvider>
+              <WidgetProvider>
+                <FloorPlanProvider>
+                  <MoodBoardProvider>
+                  <HistoryProvider>
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                      {onboardingComplete === false && pathname !== "/auth" && pathname !== "/paywall" && pathname !== "/auth-popup" && pathname !== "/auth-callback" && <Redirect href="/onboarding" />}
 
-                <Stack
-                  screenOptions={{
-                    contentStyle: { backgroundColor: COLORS.background },
-                  }}
-                >
-                  <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                  <Stack.Screen
-                    name="editor/[id]"
-                    options={{ headerShown: false, presentation: 'fullScreenModal' }}
-                  />
-                  <Stack.Screen
-                    name="view3d/[id]"
-                    options={{ headerShown: false, presentation: 'fullScreenModal' }}
-                  />
-                  <Stack.Screen
-                    name="furniture-picker"
-                    options={{ headerShown: false, presentation: 'modal' }}
-                  />
-                  <Stack.Screen
-                    name="paywall"
-                    options={{ headerShown: false, presentation: 'fullScreenModal' }}
-                  />
-                  <Stack.Screen
-                    name="ai-designer"
-                    options={{ headerShown: false, presentation: 'fullScreenModal' }}
-                  />
-                  <Stack.Screen
-                    name="share-design"
-                    options={{ headerShown: false, presentation: 'modal' }}
-                  />
-                  <Stack.Screen
-                    name="ar-view"
-                    options={{ headerShown: false, presentation: 'fullScreenModal' }}
-                  />
-                  <Stack.Screen
-                    name="shopping-list"
-                    options={{ headerShown: false, presentation: 'modal' }}
-                  />
-                  <Stack.Screen
-                    name="measurements"
-                    options={{ headerShown: false, presentation: 'modal' }}
-                  />
-                </Stack>
-                <SystemBars style="light" />
-              </GestureHandlerRootView>
-            </FloorPlanProvider>
-          </WidgetProvider>
-        </SafeAreaProvider>
-      </ThemeProvider>
-    </DevErrorBoundary>
+                      <Stack
+                        screenOptions={{
+                          contentStyle: { backgroundColor: COLORS.background },
+                        }}
+                      >
+                        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+                        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                        <Stack.Screen
+                          name="editor/[id]"
+                          options={{ headerShown: false, presentation: 'fullScreenModal' }}
+                        />
+                        <Stack.Screen
+                          name="view3d/[id]"
+                          options={{ headerShown: false, presentation: 'fullScreenModal' }}
+                        />
+                        <Stack.Screen
+                          name="furniture-picker"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="paywall"
+                          options={{ headerShown: false, presentation: 'fullScreenModal' }}
+                        />
+                        <Stack.Screen
+                          name="ai-designer"
+                          options={{ headerShown: false, presentation: 'fullScreenModal' }}
+                        />
+                        <Stack.Screen
+                          name="share-design"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="ar-view"
+                          options={{ headerShown: false, presentation: 'fullScreenModal' }}
+                        />
+                        <Stack.Screen
+                          name="shopping-list"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="measurements"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="collaborate"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="account"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="design-history"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="mood-board"
+                          options={{ headerShown: false, presentation: 'fullScreenModal' }}
+                        />
+                        <Stack.Screen
+                          name="recommendations"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="templates"
+                          options={{ headerShown: false, presentation: 'fullScreenModal' }}
+                        />
+                      </Stack>
+                      <SystemBars style="light" />
+                    </GestureHandlerRootView>
+                  </HistoryProvider>
+                  </MoodBoardProvider>
+                </FloorPlanProvider>
+              </WidgetProvider>
+            </SafeAreaProvider>
+          </ThemeProvider>
+        </DevErrorBoundary>
+      </UserProvider>
     </SubscriptionProvider>
   );
 }

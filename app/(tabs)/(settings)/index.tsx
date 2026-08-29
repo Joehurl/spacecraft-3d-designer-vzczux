@@ -24,6 +24,9 @@ import {
   ChevronRight,
   Palette,
   ShoppingCart,
+  Cloud,
+  UserCircle,
+  History,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -31,6 +34,7 @@ import { COLORS } from '@/constants/Colors';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
 import { AnimatedPressable } from '@/components/AnimatedPressable';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useUser } from '@/contexts/UserContext';
 
 type Unit = 'metric' | 'imperial';
 type GridSize = '10' | '20' | '50';
@@ -41,6 +45,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { projects } = useFloorPlan();
   const { isSubscribed } = useSubscription();
+  const { user, isLoggedIn } = useUser();
 
   const [unit, setUnit] = useState<Unit>('metric');
   const [gridSize, setGridSize] = useState<GridSize>('20');
@@ -60,7 +65,9 @@ export default function SettingsScreen() {
     sum + p.rooms.reduce((rs, r) => rs + r.placedItems.length, 0), 0
   );
 
-  const initials = 'SC';
+  const displayName = isLoggedIn && user ? user.name : 'SpaceCraft Designer';
+  const displaySub = isLoggedIn && user ? user.email : 'Sign in to sync your designs';
+  const initials = isLoggedIn && user ? user.avatar : 'SC';
   const projectCount = String(projects.length);
   const roomCount = String(totalRooms);
   const furnitureCount = String(totalFurniture);
@@ -124,13 +131,31 @@ export default function SettingsScreen() {
       )}
 
       {/* Profile Card */}
-      <View style={styles.profileCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials}</Text>
-        </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>SpaceCraft Designer</Text>
-          <Text style={styles.profileSub}>Local workspace</Text>
+      <AnimatedPressable
+        onPress={() => {
+          console.log('[Settings] Profile card pressed — navigating to account');
+          router.push('/account');
+        }}
+        style={styles.profileCard}
+      >
+        <View style={styles.profileCardInner}>
+          <LinearGradient
+            colors={['#4F8EF7', '#00D4AA']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.avatar}
+          >
+            <Text style={styles.avatarText}>{initials}</Text>
+          </LinearGradient>
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName}>{displayName}</Text>
+            <Text style={styles.profileSub}>{displaySub}</Text>
+          </View>
+          {!isLoggedIn && (
+            <View style={styles.signInCta}>
+              <Text style={styles.signInCtaText}>Sign in →</Text>
+            </View>
+          )}
         </View>
         <View style={styles.statsRow}>
           <View style={styles.stat}>
@@ -148,7 +173,7 @@ export default function SettingsScreen() {
             <Text style={styles.statLabel}>Furniture</Text>
           </View>
         </View>
-      </View>
+      </AnimatedPressable>
 
       {/* Preferences */}
       <View style={styles.section}>
@@ -372,6 +397,27 @@ export default function SettingsScreen() {
         <View style={styles.card}>
           <AnimatedPressable
             onPress={() => {
+              console.log('[Settings] Cloud Sync pressed — navigating to account');
+              router.push('/account');
+            }}
+            style={styles.settingRow}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, { backgroundColor: COLORS.primary + '22' }]}>
+                <Cloud size={18} color={COLORS.primary} />
+              </View>
+              <View>
+                <Text style={styles.settingLabel}>Cloud Sync</Text>
+                <Text style={styles.settingDesc}>{isLoggedIn ? 'Manage sync settings' : 'Sign in to enable'}</Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={COLORS.textTertiary} />
+          </AnimatedPressable>
+
+          <View style={styles.divider} />
+
+          <AnimatedPressable
+            onPress={() => {
               console.log('[Settings] Shopping List pressed');
               router.push('/shopping-list');
             }}
@@ -384,6 +430,32 @@ export default function SettingsScreen() {
               <View>
                 <Text style={styles.settingLabel}>Shopping List</Text>
                 <Text style={styles.settingDesc}>Generate buy list from designs</Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={COLORS.textTertiary} />
+          </AnimatedPressable>
+
+          <View style={styles.divider} />
+
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Settings] Design History pressed');
+              const firstProject = projects[0];
+              if (firstProject) {
+                router.push({ pathname: '/design-history', params: { projectId: firstProject.id } });
+              } else {
+                Alert.alert('No projects', 'Create a project first to view its history.');
+              }
+            }}
+            style={styles.settingRow}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, { backgroundColor: COLORS.primary + '22' }]}>
+                <History size={18} color={COLORS.primary} />
+              </View>
+              <View>
+                <Text style={styles.settingLabel}>Design History</Text>
+                <Text style={styles.settingDesc}>Browse & restore past versions</Text>
               </View>
             </View>
             <ChevronRight size={18} color={COLORS.textTertiary} />
@@ -527,11 +599,15 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
   },
+  profileCardInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
   avatar: {
     width: 60,
     height: 60,
     borderRadius: 18,
-    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -541,6 +617,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   profileInfo: {
+    flex: 1,
     gap: 2,
   },
   profileName: {
@@ -551,6 +628,17 @@ const styles = StyleSheet.create({
   profileSub: {
     color: COLORS.textSecondary,
     fontSize: 13,
+  },
+  signInCta: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  signInCtaText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
   },
   statsRow: {
     flexDirection: 'row',

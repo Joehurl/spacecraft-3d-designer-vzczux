@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TextInput,
   Pressable,
   Dimensions,
+  Animated,
+  Easing,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,10 +30,14 @@ import {
   RotateCcw,
   Share2,
   ShoppingCart,
+  History,
+  Palette,
+  Sparkles,
 } from 'lucide-react-native';
 import { COLORS } from '@/constants/Colors';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
+import { useHistory } from '@/contexts/HistoryContext';
 import { FloorPlanCanvas, EditorTool } from '@/components/FloorPlanCanvas';
 import { ToolButton } from '@/components/ToolButton';
 import { AnimatedPressable } from '@/components/AnimatedPressable';
@@ -39,6 +45,79 @@ import { BottomSheet } from '@/components/BottomSheet';
 import { ColorPicker } from '@/components/ColorPicker';
 import { FURNITURE_CATALOG } from '@/data/furniture';
 import { PlacedItem, Wall } from '@/types';
+import { CollaboratorAvatar } from '@/components/CollaboratorAvatar';
+
+// Simulated live collaborators shown in the editor
+const LIVE_COLLABORATORS = [
+  { id: '1', name: 'Alex Chen', color: '#4F8EF7', status: 'editing' as const },
+  { id: '2', name: 'Sarah Kim', color: '#00D4AA', status: 'online' as const },
+];
+
+interface LiveCursorProps {
+  color: string;
+  name: string;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  duration: number;
+  delay: number;
+}
+
+function LiveCursor({ color, name, startX, startY, endX, endY, duration, delay }: LiveCursorProps) {
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(anim, { toValue: 1, duration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(anim, { toValue: 0, duration, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [anim, duration, delay]);
+
+  const translateX = anim.interpolate({ inputRange: [0, 1], outputRange: [startX, endX] });
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [startY, endY] });
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        liveCursorStyles.dot,
+        { backgroundColor: color, transform: [{ translateX }, { translateY }] },
+      ]}
+    >
+      <Text style={liveCursorStyles.label}>{name.split(' ')[0]}</Text>
+    </Animated.View>
+  );
+}
+
+const liveCursorStyles = StyleSheet.create({
+  dot: {
+    position: 'absolute',
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  label: {
+    position: 'absolute',
+    top: 14,
+    left: 0,
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+});
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -63,6 +142,7 @@ export default function EditorScreen() {
     undoStack,
     redoStack,
   } = useFloorPlan();
+  const { getSnapshotsForProject } = useHistory();
 
   const project = projects.find(p => p.id === id);
   const room = project?.rooms[0];
@@ -165,6 +245,12 @@ export default function EditorScreen() {
     );
   }
 
+  const projectSnapshots = getSnapshotsForProject(project?.id ?? '');
+  const currentVersion = projectSnapshots.length > 0
+    ? Math.max(...projectSnapshots.map(s => s.version))
+    : 1;
+  const versionLabel = 'v' + currentVersion;
+
   const tools: { id: EditorTool; icon: React.ReactNode; label: string }[] = [
     { id: 'select', icon: <MousePointer2 size={20} color={activeTool === 'select' ? COLORS.primary : COLORS.textSecondary} />, label: 'Select' },
     { id: 'wall', icon: <Square size={20} color={activeTool === 'wall' ? COLORS.primary : COLORS.textSecondary} />, label: 'Wall' },
@@ -206,6 +292,22 @@ export default function EditorScreen() {
         </Pressable>
 
         <View style={styles.headerRight}>
+          {/* Collaborator avatars button */}
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Editor] Collaborators button pressed — project:', project.id);
+              router.push(`/collaborate?projectId=${project.id}`);
+            }}
+            style={styles.collaboBtn}
+          >
+            {LIVE_COLLABORATORS.map((c, i) => (
+              <View key={c.id} style={[styles.collaboAvatarWrap, { marginLeft: i === 0 ? 0 : -10, zIndex: LIVE_COLLABORATORS.length - i }]}>
+                <CollaboratorAvatar name={c.name} color={c.color} size={24} status={c.status} showStatus={false} />
+              </View>
+            ))}
+            <Text style={styles.collaboCount}>2</Text>
+          </AnimatedPressable>
+
           <AnimatedPressable
             onPress={() => {
               console.log('[Editor] Undo');
@@ -256,12 +358,45 @@ export default function EditorScreen() {
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => {
+              console.log('[Editor] Smart recommendations button pressed — project:', project.id);
+              router.push({ pathname: '/recommendations', params: { projectId: project.id } });
+            }}
+            style={styles.recommendBtn}
+          >
+            <Sparkles size={16} color={COLORS.accent} />
+            <Text style={styles.recommendBtnText}>✨</Text>
+            <View style={styles.recommendBadge}>
+              <Text style={styles.recommendBadgeText}>3</Text>
+            </View>
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Editor] Mood board button pressed — project:', project.id);
+              router.push({ pathname: '/mood-board', params: { projectId: project.id } });
+            }}
+            style={styles.moodBoardBtn}
+          >
+            <Palette size={18} color="#A855F7" />
+            <Text style={styles.moodBoardBtnText}>Board</Text>
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
               console.log('[Editor] Open measurements for project:', project.id);
               router.push(`/measurements?projectId=${project.id}`);
             }}
             style={styles.measureBtn}
           >
             <Ruler size={18} color={COLORS.text} />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Editor] History button pressed — project:', project.id, 'version:', versionLabel);
+              router.push({ pathname: '/design-history', params: { projectId: project.id } });
+            }}
+            style={styles.historyBtn}
+          >
+            <History size={16} color={COLORS.text} />
+            <Text style={styles.historyBtnText}>{versionLabel}</Text>
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => {
@@ -286,17 +421,22 @@ export default function EditorScreen() {
         </View>
       </View>
 
-      {/* Canvas */}
-      <FloorPlanCanvas
-        room={room}
-        activeTool={activeTool}
-        onAddWall={handleAddWall}
-        onUpdatePlacedItem={handleUpdatePlacedItem}
-        onRemovePlacedItem={handleRemovePlacedItem}
-        onSelectItem={handleSelectItem}
-        selectedItemId={selectedItemId}
-        onOpenFurniturePicker={handleOpenFurniturePicker}
-      />
+      {/* Canvas + live cursors overlay */}
+      <View style={{ flex: 1 }}>
+        <FloorPlanCanvas
+          room={room}
+          activeTool={activeTool}
+          onAddWall={handleAddWall}
+          onUpdatePlacedItem={handleUpdatePlacedItem}
+          onRemovePlacedItem={handleRemovePlacedItem}
+          onSelectItem={handleSelectItem}
+          selectedItemId={selectedItemId}
+          onOpenFurniturePicker={handleOpenFurniturePicker}
+        />
+        {/* Simulated live cursors */}
+        <LiveCursor color="#4F8EF7" name="Alex Chen" startX={60} startY={80} endX={180} endY={140} duration={3000} delay={0} />
+        <LiveCursor color="#00D4AA" name="Sarah Kim" startX={200} startY={60} endX={100} endY={200} duration={3500} delay={800} />
+      </View>
 
       {/* Bottom Toolbar */}
       <View style={[styles.toolbar, { paddingBottom: insets.bottom + 8 }]}>
@@ -463,6 +603,71 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  historyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: COLORS.surfaceSecondary,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  historyBtnText: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  moodBoardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(168,85,247,0.12)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(168,85,247,0.3)',
+  },
+  moodBoardBtnText: {
+    color: '#A855F7',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  recommendBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.accentMuted,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: COLORS.accent + '40',
+    position: 'relative',
+  },
+  recommendBtnText: {
+    fontSize: 13,
+  },
+  recommendBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: COLORS.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: COLORS.background,
+  },
+  recommendBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
+  },
   view3dBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -493,6 +698,28 @@ const styles = StyleSheet.create({
   },
   crownBadgeText: {
     fontSize: 10,
+  },
+  collaboBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surfaceSecondary,
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 4,
+  },
+  collaboAvatarWrap: {
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.surface,
+  },
+  collaboCount: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 2,
   },
   toolbar: {
     backgroundColor: COLORS.surface,

@@ -4,6 +4,14 @@ import { COLORS } from '@/constants/Colors';
 import { FloorPlan } from '@/types';
 import { RoomPreview } from '@/components/RoomPreview';
 import { AnimatedPressable } from '@/components/AnimatedPressable';
+import { CollaboratorAvatar } from '@/components/CollaboratorAvatar';
+
+// Simulated collaborators per project (deterministic by project index)
+const COLLAB_POOLS = [
+  [{ name: 'Alex Chen', color: '#4F8EF7' }, { name: 'Sarah Kim', color: '#00D4AA' }],
+  [{ name: 'Marcus Lee', color: '#A78BFA' }, { name: 'Jordan Wu', color: '#F472B6' }, { name: 'Alex Chen', color: '#4F8EF7' }],
+  [{ name: 'Sarah Kim', color: '#00D4AA' }, { name: 'Marcus Lee', color: '#A78BFA' }],
+];
 
 interface ProjectCardProps {
   project: FloorPlan;
@@ -59,6 +67,7 @@ export function ProjectCard({ project, onPress, onLongPress, index }: ProjectCar
   const relativeDate = getRelativeDate(project.updatedAt);
   const styleLabel = project.style.charAt(0).toUpperCase() + project.style.slice(1);
   const areaDisplay = String(project.totalArea);
+  const collabPool = COLLAB_POOLS[index % COLLAB_POOLS.length];
 
   return (
     <Animated.View style={{ opacity, transform: [{ translateY }] }}>
@@ -70,6 +79,20 @@ export function ProjectCard({ project, onPress, onLongPress, index }: ProjectCar
           <View style={styles.styleBadge}>
             <View style={[styles.styleDot, { backgroundColor: styleColor }]} />
             <Text style={styles.styleBadgeText}>{styleLabel}</Text>
+          </View>
+          {/* Collaborator avatar stack */}
+          <View style={styles.collabStack}>
+            {collabPool.map((c, i) => (
+              <View
+                key={c.name}
+                style={[
+                  styles.collabAvatarWrap,
+                  { marginLeft: i === 0 ? 0 : -8, zIndex: collabPool.length - i },
+                ]}
+              >
+                <CollaboratorAvatar name={c.name} color={c.color} size={22} showStatus={false} />
+              </View>
+            ))}
           </View>
         </View>
 
@@ -155,5 +178,17 @@ const styles = StyleSheet.create({
     color: COLORS.textTertiary,
     fontSize: 11,
     marginTop: 2,
+  },
+  collabStack: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  collabAvatarWrap: {
+    borderRadius: 11,
+    borderWidth: 1.5,
+    borderColor: COLORS.surface,
   },
 });

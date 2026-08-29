@@ -10,13 +10,14 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, Search } from 'lucide-react-native';
+import { X, Search, Sparkles } from 'lucide-react-native';
 import { COLORS } from '@/constants/Colors';
 import { FURNITURE_CATALOG, FURNITURE_CATEGORIES, CATEGORY_COLORS } from '@/data/furniture';
 import { FurnitureItem } from '@/types';
 import { AnimatedPressable } from '@/components/AnimatedPressable';
 import { FurnitureCard } from '@/components/FurnitureCard';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
+import { generateRecommendations } from '@/utils/recommendationEngine';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_W = (SCREEN_W - 48) / 3;
@@ -33,6 +34,12 @@ export default function FurniturePickerScreen() {
 
   const project = projects.find(p => p.id === projectId);
   const room = project?.rooms.find(r => r.id === roomId);
+
+  const topRecommendations = useMemo(() => {
+    if (!room || !project) return [];
+    const recs = generateRecommendations(room, project);
+    return recs.slice(0, 6).map(r => r.item);
+  }, [room, project]);
 
   const filtered = useMemo(() => {
     let items = FURNITURE_CATALOG;
@@ -149,6 +156,38 @@ export default function FurniturePickerScreen() {
         })}
       </ScrollView>
 
+      {/* Recommended for your room */}
+      {topRecommendations.length > 0 && (
+        <View style={styles.recSection}>
+          <View style={styles.recHeader}>
+            <Sparkles size={14} color={COLORS.accent} />
+            <Text style={styles.recTitle}>Recommended for your room</Text>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.recScroll}
+          >
+            {topRecommendations.map(item => (
+              <AnimatedPressable
+                key={item.id}
+                onPress={() => {
+                  console.log('[FurniturePicker] Recommended item selected:', item.id, item.name);
+                  setSelectedId(prev => prev === item.id ? null : item.id);
+                }}
+                style={[styles.recCard, selectedId === item.id && styles.recCardSelected]}
+              >
+                <Text style={styles.recEmoji}>{item.emoji}</Text>
+                <Text style={styles.recName} numberOfLines={2}>{item.name}</Text>
+                {item.price !== undefined && (
+                  <Text style={styles.recPrice}>${Number(item.price).toLocaleString()}</Text>
+                )}
+              </AnimatedPressable>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
       {/* Count */}
       <Text style={styles.countText}>{filtered.length} items</Text>
 
@@ -253,6 +292,54 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 13,
     fontWeight: '600',
+  },
+  recSection: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+    gap: 8,
+  },
+  recHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  recTitle: {
+    color: COLORS.accent,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  recScroll: {
+    gap: 8,
+    paddingRight: 4,
+  },
+  recCard: {
+    width: 90,
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: 10,
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  recCardSelected: {
+    borderColor: COLORS.accent,
+    backgroundColor: COLORS.accentMuted,
+  },
+  recEmoji: {
+    fontSize: 24,
+  },
+  recName: {
+    color: COLORS.text,
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 13,
+  },
+  recPrice: {
+    color: COLORS.accent,
+    fontSize: 10,
+    fontWeight: '700',
   },
   countText: {
     color: COLORS.textTertiary,

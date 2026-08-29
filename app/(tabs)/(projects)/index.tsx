@@ -15,14 +15,16 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Plus, MoreHorizontal, Trash2, Copy, Pencil, Share2, ShoppingCart, Ruler } from 'lucide-react-native';
+import { Plus, MoreHorizontal, Trash2, Copy, Pencil, Share2, ShoppingCart, Ruler, History, Palette } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/Colors';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
+import { useHistory } from '@/contexts/HistoryContext';
 import { FloorPlan } from '@/types';
 import { ProjectCard } from '@/components/ProjectCard';
 import { AnimatedPressable } from '@/components/AnimatedPressable';
 import { BottomSheet } from '@/components/BottomSheet';
+import { useUser } from '@/contexts/UserContext';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_W - 48) / 2;
@@ -49,6 +51,8 @@ export default function ProjectsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { projects, createProject, deleteProject, duplicateProject, setActiveProject } = useFloorPlan();
+  const { getSnapshotsForProject } = useHistory();
+  const { user, isLoggedIn } = useUser();
 
   const [showCreate, setShowCreate] = useState(false);
   const [projectName, setProjectName] = useState('');
@@ -104,16 +108,24 @@ export default function ProjectsScreen() {
     setContextProject(null);
   }
 
-  const renderProject = ({ item, index }: { item: FloorPlan; index: number }) => (
-    <View style={{ width: CARD_WIDTH }}>
-      <ProjectCard
-        project={item}
-        onPress={() => handleOpenProject(item)}
-        onLongPress={() => handleLongPress(item)}
-        index={index}
-      />
-    </View>
-  );
+  const renderProject = ({ item, index }: { item: FloorPlan; index: number }) => {
+    const snaps = getSnapshotsForProject(item.id);
+    const version = snaps.length > 0 ? Math.max(...snaps.map(s => s.version)) : 1;
+    const versionBadge = 'v' + version;
+    return (
+      <View style={{ width: CARD_WIDTH }}>
+        <ProjectCard
+          project={item}
+          onPress={() => handleOpenProject(item)}
+          onLongPress={() => handleLongPress(item)}
+          index={index}
+        />
+        <View style={styles.versionBadge} pointerEvents="none">
+          <Text style={styles.versionBadgeText}>{versionBadge}</Text>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -123,15 +135,34 @@ export default function ProjectsScreen() {
           <Text style={styles.headerTitle}>My Projects</Text>
           <Text style={styles.headerSub}>{projects.length} design{projects.length !== 1 ? 's' : ''}</Text>
         </View>
-        <AnimatedPressable
-          onPress={() => {
-            console.log('[Projects] Open create sheet');
-            setShowCreate(true);
-          }}
-          style={styles.addBtn}
-        >
-          <Plus size={22} color="#fff" />
-        </AnimatedPressable>
+        <View style={styles.headerRight}>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Projects] Account avatar pressed — navigating to account');
+              router.push('/account');
+            }}
+            style={styles.avatarBtn}
+          >
+            {isLoggedIn && user ? (
+              <LinearGradient colors={['#4F8EF7', '#00D4AA']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.avatarBtnGradient}>
+                <Text style={styles.avatarBtnText}>{user.avatar}</Text>
+              </LinearGradient>
+            ) : (
+              <View style={styles.avatarBtnDefault}>
+                <Text style={styles.avatarBtnText}>👤</Text>
+              </View>
+            )}
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Projects] Open create sheet');
+              setShowCreate(true);
+            }}
+            style={styles.addBtn}
+          >
+            <Plus size={22} color="#fff" />
+          </AnimatedPressable>
+        </View>
       </Animated.View>
 
       {/* Feature banners row */}
@@ -190,6 +221,33 @@ export default function ProjectsScreen() {
           </LinearGradient>
         </AnimatedPressable>
       </View>
+
+      {/* Templates Banner */}
+      <AnimatedPressable
+        onPress={() => {
+          console.log('[Projects] Templates banner pressed');
+          router.push('/templates');
+        }}
+        style={styles.templatesBannerOuter}
+      >
+        <LinearGradient
+          colors={['#1a1a3a', '#0d0d2a']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.templatesBanner}
+        >
+          <View style={[styles.aiBannerIconWrap, { backgroundColor: 'rgba(163,139,250,0.2)' }]}>
+            <Text style={styles.aiBannerIcon}>📐</Text>
+          </View>
+          <View style={styles.aiBannerInfo}>
+            <Text style={styles.aiBannerTitle}>Room Templates</Text>
+            <Text style={styles.aiBannerSub}>50+ pre-built layouts to start from</Text>
+          </View>
+          <View style={[styles.aiBannerBtn, { backgroundColor: '#A78BFA' }]}>
+            <Text style={styles.aiBannerBtnText}>Browse →</Text>
+          </View>
+        </LinearGradient>
+      </AnimatedPressable>
 
       {/* Content */}
       {projects.length === 0 ? (
@@ -296,6 +354,17 @@ export default function ProjectsScreen() {
           <AnimatedPressable onPress={handleCreateProject} style={styles.createBtn}>
             <Text style={styles.createBtnText}>Create Project</Text>
           </AnimatedPressable>
+
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Projects] Start from template pressed');
+              setShowCreate(false);
+              router.push('/templates');
+            }}
+            style={styles.templateBtn}
+          >
+            <Text style={styles.templateBtnText}>📐 Start from Template</Text>
+          </AnimatedPressable>
         </ScrollView>
       </BottomSheet>
 
@@ -318,6 +387,19 @@ export default function ProjectsScreen() {
           <AnimatedPressable onPress={handleDuplicate} style={styles.contextItem}>
             <Copy size={20} color={COLORS.text} />
             <Text style={styles.contextItemText}>Duplicate</Text>
+          </AnimatedPressable>
+
+          <AnimatedPressable
+            onPress={() => {
+              if (!contextProject) return;
+              console.log('[Projects] Context: design history for project:', contextProject.id);
+              setShowContext(false);
+              router.push({ pathname: '/design-history', params: { projectId: contextProject.id } });
+            }}
+            style={styles.contextItem}
+          >
+            <History size={20} color={COLORS.primary} />
+            <Text style={styles.contextItemText}>Design History</Text>
           </AnimatedPressable>
 
           <AnimatedPressable
@@ -359,6 +441,19 @@ export default function ProjectsScreen() {
             <Text style={styles.contextItemText}>Share</Text>
           </AnimatedPressable>
 
+          <AnimatedPressable
+            onPress={() => {
+              if (!contextProject) return;
+              console.log('[Projects] Context: mood board for project:', contextProject.id);
+              setShowContext(false);
+              router.push({ pathname: '/mood-board', params: { projectId: contextProject.id } });
+            }}
+            style={styles.contextItem}
+          >
+            <Palette size={20} color="#A855F7" />
+            <Text style={styles.contextItemText}>Mood Board</Text>
+          </AnimatedPressable>
+
           <AnimatedPressable onPress={handleDelete} style={styles.contextItem}>
             <Trash2 size={20} color={COLORS.danger} />
             <Text style={[styles.contextItemText, { color: COLORS.danger }]}>Delete project</Text>
@@ -392,6 +487,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginTop: 2,
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  avatarBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  avatarBtnGradient: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarBtnDefault: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  avatarBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
   addBtn: {
     width: 44,
     height: 44,
@@ -404,7 +532,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     marginHorizontal: 16,
+    marginBottom: 10,
+  },
+  templatesBannerOuter: {
+    marginHorizontal: 16,
     marginBottom: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  templatesBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
   },
   bannerHalf: {
     flex: 1,
@@ -618,6 +761,36 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
+  },
+  templateBtn: {
+    backgroundColor: COLORS.surfaceSecondary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  templateBtnText: {
+    color: COLORS.textSecondary,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  versionBadge: {
+    position: 'absolute',
+    bottom: 20,
+    left: 8,
+    backgroundColor: 'rgba(10,14,26,0.82)',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  versionBadgeText: {
+    color: COLORS.textSecondary,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   // Context
   contextContent: {
