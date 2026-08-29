@@ -15,6 +15,7 @@ import {
   Undo2,
   Redo2,
   Box,
+  Camera,
   MousePointer2,
   Square,
   DoorOpen,
@@ -25,6 +26,8 @@ import {
   ChevronDown,
   Trash2,
   RotateCcw,
+  Share2,
+  ShoppingCart,
 } from 'lucide-react-native';
 import { COLORS } from '@/constants/Colors';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -225,6 +228,43 @@ export default function EditorScreen() {
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => {
+              console.log('[Editor] Share button pressed — project:', project.id);
+              router.push({ pathname: '/share-design', params: { projectId: project.id } });
+            }}
+            style={styles.headerBtn}
+          >
+            <Share2 size={20} color={COLORS.text} />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Editor] Open AR view for project:', project.id);
+              router.push(`/ar-view?projectId=${project.id}`);
+            }}
+            style={styles.arBtn}
+          >
+            <Camera size={18} color={COLORS.accent} />
+            <Text style={styles.arBtnText}>AR</Text>
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Editor] Shopping list button pressed — project:', project.id);
+              router.push({ pathname: '/shopping-list', params: { projectId: project.id } });
+            }}
+            style={styles.headerBtn}
+          >
+            <ShoppingCart size={20} color={COLORS.text} />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Editor] Open measurements for project:', project.id);
+              router.push(`/measurements?projectId=${project.id}`);
+            }}
+            style={styles.measureBtn}
+          >
+            <Ruler size={18} color={COLORS.text} />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
               if (!isSubscribed) {
                 console.log('[Editor] 3D View blocked — not subscribed, opening paywall');
                 router.push('/paywall');
@@ -398,6 +438,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  arBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: COLORS.accentMuted,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: COLORS.accent + '40',
+  },
+  arBtnText: {
+    color: COLORS.accent,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  measureBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   view3dBtn: {
     flexDirection: 'row',

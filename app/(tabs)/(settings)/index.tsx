@@ -23,6 +23,7 @@ import {
   FileText,
   ChevronRight,
   Palette,
+  ShoppingCart,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -287,23 +288,40 @@ export default function SettingsScreen() {
 
           <View style={styles.divider} />
 
-          <View style={styles.settingRow}>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Settings] Show dimensions row pressed — navigating to measurements');
+              const firstProject = projects[0];
+              if (firstProject) {
+                router.push({ pathname: '/measurements', params: { projectId: firstProject.id } });
+              } else {
+                Alert.alert('No projects', 'Create a project first to view measurements.');
+              }
+            }}
+            style={styles.settingRow}
+          >
             <View style={styles.settingLeft}>
               <View style={[styles.settingIcon, { backgroundColor: COLORS.accent + '22' }]}>
                 <Eye size={18} color={COLORS.accent} />
               </View>
-              <Text style={styles.settingLabel}>Show dimensions</Text>
+              <View>
+                <Text style={styles.settingLabel}>Show dimensions</Text>
+                <Text style={styles.settingDesc}>View measurements & cost estimator</Text>
+              </View>
             </View>
-            <Switch
-              value={showDimensions}
-              onValueChange={v => {
-                console.log('[Settings] Show dimensions:', v);
-                setShowDimensions(v);
-              }}
-              trackColor={{ false: COLORS.surfaceTertiary, true: COLORS.primary }}
-              thumbColor="#fff"
-            />
-          </View>
+            <View style={styles.settingRowRight}>
+              <Switch
+                value={showDimensions}
+                onValueChange={v => {
+                  console.log('[Settings] Show dimensions toggle:', v);
+                  setShowDimensions(v);
+                }}
+                trackColor={{ false: COLORS.surfaceTertiary, true: COLORS.primary }}
+                thumbColor="#fff"
+              />
+              <ChevronRight size={16} color={COLORS.textTertiary} />
+            </View>
+          </AnimatedPressable>
 
           <View style={styles.divider} />
 
@@ -352,6 +370,27 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>Data</Text>
 
         <View style={styles.card}>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Settings] Shopping List pressed');
+              router.push('/shopping-list');
+            }}
+            style={styles.settingRow}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, { backgroundColor: COLORS.accent + '22' }]}>
+                <ShoppingCart size={18} color={COLORS.accent} />
+              </View>
+              <View>
+                <Text style={styles.settingLabel}>Shopping List</Text>
+                <Text style={styles.settingDesc}>Generate buy list from designs</Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={COLORS.textTertiary} />
+          </AnimatedPressable>
+
+          <View style={styles.divider} />
+
           <AnimatedPressable
             onPress={() => console.log('[Settings] Export projects')}
             style={styles.settingRow}
@@ -621,6 +660,11 @@ const styles = StyleSheet.create({
   },
   segBtnTextActive: {
     color: '#fff',
+  },
+  settingRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   colorSwatch: {
     width: 28,

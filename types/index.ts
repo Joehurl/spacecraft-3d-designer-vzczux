@@ -84,4 +84,7 @@ export interface FurnitureItem {
   style: string[];
   tags: string[];
   popular: boolean;
+  price?: number;
+  isNew?: boolean;
+  brand?: string;
 }

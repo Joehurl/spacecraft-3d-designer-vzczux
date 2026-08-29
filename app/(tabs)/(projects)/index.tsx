@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Plus, MoreHorizontal, Trash2, Copy, Pencil } from 'lucide-react-native';
+import { Plus, MoreHorizontal, Trash2, Copy, Pencil, Share2, ShoppingCart, Ruler } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/Colors';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
@@ -134,32 +134,62 @@ export default function ProjectsScreen() {
         </AnimatedPressable>
       </Animated.View>
 
-      {/* AI Designer Banner */}
-      <AnimatedPressable
-        onPress={() => {
-          console.log('[Projects] AI Designer banner pressed');
-          router.push('/ai-designer');
-        }}
-        style={styles.aiBannerOuter}
-      >
-        <LinearGradient
-          colors={['#1a2a4a', '#0d1a30']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.aiBanner}
+      {/* Feature banners row */}
+      <View style={styles.bannerRow}>
+        {/* AI Designer Banner */}
+        <AnimatedPressable
+          onPress={() => {
+            console.log('[Projects] AI Designer banner pressed');
+            router.push('/ai-designer');
+          }}
+          style={[styles.aiBannerOuter, styles.bannerHalf]}
         >
-          <View style={styles.aiBannerIconWrap}>
-            <Text style={styles.aiBannerIcon}>✨</Text>
-          </View>
-          <View style={styles.aiBannerInfo}>
-            <Text style={styles.aiBannerTitle}>AI Room Designer</Text>
-            <Text style={styles.aiBannerSub}>Describe it, AI builds it</Text>
-          </View>
-          <View style={styles.aiBannerBtn}>
-            <Text style={styles.aiBannerBtnText}>Try it →</Text>
-          </View>
-        </LinearGradient>
-      </AnimatedPressable>
+          <LinearGradient
+            colors={['#1a2a4a', '#0d1a30']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.aiBanner}
+          >
+            <View style={styles.aiBannerIconWrap}>
+              <Text style={styles.aiBannerIcon}>✨</Text>
+            </View>
+            <View style={styles.aiBannerInfo}>
+              <Text style={styles.aiBannerTitle}>AI Designer</Text>
+              <Text style={styles.aiBannerSub}>Describe it, AI builds it</Text>
+            </View>
+            <View style={styles.aiBannerBtn}>
+              <Text style={styles.aiBannerBtnText}>Try →</Text>
+            </View>
+          </LinearGradient>
+        </AnimatedPressable>
+
+        {/* AR View Banner */}
+        <AnimatedPressable
+          onPress={() => {
+            console.log('[Projects] AR View banner pressed');
+            router.push('/ar-view');
+          }}
+          style={[styles.aiBannerOuter, styles.bannerHalf]}
+        >
+          <LinearGradient
+            colors={['#0d2a1a', '#061a10']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.aiBanner}
+          >
+            <View style={[styles.aiBannerIconWrap, { backgroundColor: 'rgba(0,212,170,0.18)' }]}>
+              <Text style={styles.aiBannerIcon}>📷</Text>
+            </View>
+            <View style={styles.aiBannerInfo}>
+              <Text style={styles.aiBannerTitle}>AR View</Text>
+              <Text style={styles.aiBannerSub}>Place furniture in your room</Text>
+            </View>
+            <View style={[styles.aiBannerBtn, { backgroundColor: '#00D4AA' }]}>
+              <Text style={styles.aiBannerBtnText}>Try →</Text>
+            </View>
+          </LinearGradient>
+        </AnimatedPressable>
+      </View>
 
       {/* Content */}
       {projects.length === 0 ? (
@@ -270,7 +300,7 @@ export default function ProjectsScreen() {
       </BottomSheet>
 
       {/* Context Menu */}
-      <BottomSheet visible={showContext} onClose={() => setShowContext(false)} maxHeight={260}>
+      <BottomSheet visible={showContext} onClose={() => setShowContext(false)} maxHeight={380}>
         <View style={styles.contextContent}>
           <Text style={styles.contextTitle} numberOfLines={1}>{contextProject?.name}</Text>
 
@@ -288,6 +318,45 @@ export default function ProjectsScreen() {
           <AnimatedPressable onPress={handleDuplicate} style={styles.contextItem}>
             <Copy size={20} color={COLORS.text} />
             <Text style={styles.contextItemText}>Duplicate</Text>
+          </AnimatedPressable>
+
+          <AnimatedPressable
+            onPress={() => {
+              if (!contextProject) return;
+              console.log('[Projects] Context: measurements for project:', contextProject.id);
+              setShowContext(false);
+              router.push({ pathname: '/measurements', params: { projectId: contextProject.id } });
+            }}
+            style={styles.contextItem}
+          >
+            <Ruler size={20} color={COLORS.primary} />
+            <Text style={styles.contextItemText}>Measurements</Text>
+          </AnimatedPressable>
+
+          <AnimatedPressable
+            onPress={() => {
+              if (!contextProject) return;
+              console.log('[Projects] Context: shopping list for project:', contextProject.id);
+              setShowContext(false);
+              router.push({ pathname: '/shopping-list', params: { projectId: contextProject.id } });
+            }}
+            style={styles.contextItem}
+          >
+            <ShoppingCart size={20} color={COLORS.accent} />
+            <Text style={styles.contextItemText}>Shopping List</Text>
+          </AnimatedPressable>
+
+          <AnimatedPressable
+            onPress={() => {
+              if (!contextProject) return;
+              console.log('[Projects] Context: share project:', contextProject.id);
+              setShowContext(false);
+              router.push({ pathname: '/share-design', params: { projectId: contextProject.id } });
+            }}
+            style={styles.contextItem}
+          >
+            <Share2 size={20} color={COLORS.text} />
+            <Text style={styles.contextItemText}>Share</Text>
           </AnimatedPressable>
 
           <AnimatedPressable onPress={handleDelete} style={styles.contextItem}>
@@ -330,6 +399,17 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  bannerRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginHorizontal: 16,
+    marginBottom: 16,
+  },
+  bannerHalf: {
+    flex: 1,
+    marginHorizontal: 0,
+    marginBottom: 0,
   },
   aiBannerOuter: {
     marginHorizontal: 16,

@@ -154,6 +154,22 @@ export default function RootLayout() {
                     name="ai-designer"
                     options={{ headerShown: false, presentation: 'fullScreenModal' }}
                   />
+                  <Stack.Screen
+                    name="share-design"
+                    options={{ headerShown: false, presentation: 'modal' }}
+                  />
+                  <Stack.Screen
+                    name="ar-view"
+                    options={{ headerShown: false, presentation: 'fullScreenModal' }}
+                  />
+                  <Stack.Screen
+                    name="shopping-list"
+                    options={{ headerShown: false, presentation: 'modal' }}
+                  />
+                  <Stack.Screen
+                    name="measurements"
+                    options={{ headerShown: false, presentation: 'modal' }}
+                  />
                 </Stack>
                 <SystemBars style="light" />
               </GestureHandlerRootView>
