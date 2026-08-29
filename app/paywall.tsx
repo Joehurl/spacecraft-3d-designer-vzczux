@@ -16,6 +16,7 @@ import {
   Alert,
   Platform,
   Dimensions,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -411,6 +412,15 @@ export default function PaywallScreen() {
                   <Text style={styles.restoreBtnText}>Restore Purchases</Text>
                 )}
               </TouchableOpacity>
+              <View style={styles.legalLinksRow}>
+                <TouchableOpacity onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}>
+                  <Text style={styles.legalLink}>Terms of Service</Text>
+                </TouchableOpacity>
+                <Text style={styles.legalLinkSep}>·</Text>
+                <TouchableOpacity onPress={() => Linking.openURL('https://spacecraftapp.com/privacy')}>
+                  <Text style={styles.legalLink}>Privacy Policy</Text>
+                </TouchableOpacity>
+              </View>
               <Text style={styles.legalText}>Preview mode — purchases available in the mobile app</Text>
             </>
           ) : (
@@ -441,6 +451,16 @@ export default function PaywallScreen() {
                   <Text style={styles.restoreBtnText}>Restore Purchases</Text>
                 )}
               </TouchableOpacity>
+
+              <View style={styles.legalLinksRow}>
+                <TouchableOpacity onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}>
+                  <Text style={styles.legalLink}>Terms of Service</Text>
+                </TouchableOpacity>
+                <Text style={styles.legalLinkSep}>·</Text>
+                <TouchableOpacity onPress={() => Linking.openURL('https://spacecraftapp.com/privacy')}>
+                  <Text style={styles.legalLink}>Privacy Policy</Text>
+                </TouchableOpacity>
+              </View>
 
               <Text style={styles.legalText}>
                 Payment charged to your {Platform.OS === 'ios' ? 'Apple ID' : 'Google Play'} account.
@@ -850,6 +870,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 15,
     opacity: 0.7,
+  },
+  legalLinksRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  legalLink: {
+    color: C.primary,
+    fontSize: 12,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
+  },
+  legalLinkSep: {
+    color: C.textSecondary,
+    fontSize: 12,
   },
   // ── Dev simulate banner ───────────────────────────────────────────────────
   devBanner: {
