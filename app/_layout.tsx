@@ -150,6 +150,10 @@ export default function RootLayout() {
                     name="paywall"
                     options={{ headerShown: false, presentation: 'fullScreenModal' }}
                   />
+                  <Stack.Screen
+                    name="ai-designer"
+                    options={{ headerShown: false, presentation: 'fullScreenModal' }}
+                  />
                 </Stack>
                 <SystemBars style="light" />
               </GestureHandlerRootView>

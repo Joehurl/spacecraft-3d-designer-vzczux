@@ -16,6 +16,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Plus, MoreHorizontal, Trash2, Copy, Pencil } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/Colors';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
 import { FloorPlan } from '@/types';
@@ -132,6 +133,33 @@ export default function ProjectsScreen() {
           <Plus size={22} color="#fff" />
         </AnimatedPressable>
       </Animated.View>
+
+      {/* AI Designer Banner */}
+      <AnimatedPressable
+        onPress={() => {
+          console.log('[Projects] AI Designer banner pressed');
+          router.push('/ai-designer');
+        }}
+        style={styles.aiBannerOuter}
+      >
+        <LinearGradient
+          colors={['#1a2a4a', '#0d1a30']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.aiBanner}
+        >
+          <View style={styles.aiBannerIconWrap}>
+            <Text style={styles.aiBannerIcon}>✨</Text>
+          </View>
+          <View style={styles.aiBannerInfo}>
+            <Text style={styles.aiBannerTitle}>AI Room Designer</Text>
+            <Text style={styles.aiBannerSub}>Describe it, AI builds it</Text>
+          </View>
+          <View style={styles.aiBannerBtn}>
+            <Text style={styles.aiBannerBtnText}>Try it →</Text>
+          </View>
+        </LinearGradient>
+      </AnimatedPressable>
 
       {/* Content */}
       {projects.length === 0 ? (
@@ -302,6 +330,57 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  aiBannerOuter: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  aiBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  aiBannerIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(79,142,247,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiBannerIcon: {
+    fontSize: 22,
+  },
+  aiBannerInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  aiBannerTitle: {
+    color: COLORS.text,
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  aiBannerSub: {
+    color: COLORS.textSecondary,
+    fontSize: 12,
+  },
+  aiBannerBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  aiBannerBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
   },
   grid: {
     paddingHorizontal: 16,

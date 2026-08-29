@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/Colors';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
 import { DesignCard } from '@/components/DesignCard';
@@ -140,6 +141,39 @@ export default function ExploreScreen() {
             <Text style={styles.heroSub}>A masterclass in Scandinavian minimalism</Text>
           </View>
         </View>
+      </View>
+
+      {/* AI Designer Feature Card */}
+      <View style={styles.section}>
+        <AnimatedPressable
+          onPress={() => {
+            console.log('[Explore] AI Designer card pressed');
+            router.push('/ai-designer');
+          }}
+          style={styles.aiCardOuter}
+        >
+          <LinearGradient
+            colors={['#0d1a30', '#1a2a4a', '#0d2a1a']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.aiCard}
+          >
+            <View style={styles.aiCardOverlay} />
+            <View style={styles.aiCardContent}>
+              <View style={styles.aiCardBadge}>
+                <Text style={styles.aiCardBadgeText}>✦ New Feature</Text>
+              </View>
+              <Text style={styles.aiCardTitle}>✨ AI Room Designer</Text>
+              <Text style={styles.aiCardSub}>
+                Describe your dream room in plain text and AI will generate a complete floor plan instantly
+              </Text>
+              <View style={styles.aiCardBtn}>
+                <Text style={styles.aiCardBtnText}>Try AI Designer →</Text>
+              </View>
+            </View>
+            <Text style={styles.aiCardEmojis}>🛋️🪴🖼️✨</Text>
+          </LinearGradient>
+        </AnimatedPressable>
       </View>
 
       {/* Trending Styles */}
@@ -286,6 +320,72 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 28,
     gap: 14,
+  },
+  aiCardOuter: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  aiCard: {
+    height: 180,
+    padding: 20,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+  },
+  aiCardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(10,14,26,0.3)',
+  },
+  aiCardEmojis: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    fontSize: 36,
+    letterSpacing: 4,
+    opacity: 0.7,
+  },
+  aiCardContent: {
+    gap: 6,
+  },
+  aiCardBadge: {
+    backgroundColor: COLORS.accent + '33',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderColor: COLORS.accent + '44',
+    marginBottom: 2,
+  },
+  aiCardBadgeText: {
+    color: COLORS.accent,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  aiCardTitle: {
+    color: COLORS.text,
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  aiCardSub: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  aiCardBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignSelf: 'flex-start',
+    marginTop: 4,
+  },
+  aiCardBtnText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
   },
   sectionTitle: {
     color: COLORS.text,
