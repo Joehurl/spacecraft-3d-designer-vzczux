@@ -10,11 +10,12 @@ import {
   Platform,
   Animated,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { X, ChevronRight, Cloud, Smartphone, Plus, RefreshCw, LogOut, Trash2 } from 'lucide-react-native';
+import { X, ChevronRight, Cloud, Smartphone, Plus, RefreshCw, LogOut, Trash2, ExternalLink } from 'lucide-react-native';
 import { COLORS } from '@/constants/Colors';
 import { useUser } from '@/contexts/UserContext';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
@@ -168,9 +169,10 @@ function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, logout, updateProfile, syncProjects, isSyncing, lastSyncAt } = useUser();
   const { projects } = useFloorPlan();
-  const { isSubscribed } = useSubscription();
+  const { isSubscribed, restorePurchases } = useSubscription();
 
   const [editingName, setEditingName] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
   const [nameValue, setNameValue] = useState(user?.name ?? '');
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -254,6 +256,35 @@ function ProfileScreen() {
     Alert.alert('Add device', 'Sign in with the same email on your other device to sync automatically.');
   }
 
+  function handleManageSubscription() {
+    console.log('[Account] Manage subscription pressed');
+    const url = Platform.OS === 'android'
+      ? 'https://play.google.com/store/account/subscriptions'
+      : 'https://apps.apple.com/account/subscriptions';
+    Linking.openURL(url);
+  }
+
+  async function handleRestorePurchases() {
+    console.log('[Account] Restore purchases pressed');
+    setIsRestoring(true);
+    try {
+      const found = await restorePurchases();
+      if (found) {
+        Alert.alert('Restored!', 'Your subscription has been restored successfully.');
+      } else {
+        Alert.alert('No subscription found', 'We could not find an active subscription to restore.');
+      }
+    } catch {
+      Alert.alert('Restore failed', 'Something went wrong. Please try again.');
+    } finally {
+      setIsRestoring(false);
+    }
+  }
+
+  const manageSubUrl = Platform.OS === 'android'
+    ? 'https://play.google.com/store/account/subscriptions'
+    : 'https://apps.apple.com/account/subscriptions';
+
   return (
     <Animated.ScrollView
       style={[styles.container, { opacity: fadeAnim }]}
@@ -323,6 +354,88 @@ function ProfileScreen() {
         <View style={styles.stat}>
           <Text style={styles.statValue}>{furnitureCountStr}</Text>
           <Text style={styles.statLabel}>Furniture</Text>
+        </View>
+      </View>
+
+      {/* Subscription Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Subscription</Text>
+        <View style={styles.card}>
+          {isSubscribed ? (
+            <>
+              {/* Row 1 — Current plan */}
+              <View style={styles.cardRow}>
+                <View style={styles.cardRowLeft}>
+                  <View style={[styles.iconWrap, { backgroundColor: COLORS.accent + '22' }]}>
+                    <Text style={styles.iconEmoji}>👑</Text>
+                  </View>
+                  <View>
+                    <Text style={[styles.cardRowLabel, { fontWeight: '700' }]}>SpaceCraft Pro</Text>
+                    <Text style={[styles.cardRowSub, { color: COLORS.success }]}>Active subscription</Text>
+                  </View>
+                </View>
+                <View style={styles.proBadge}>
+                  <Text style={styles.proBadgeText}>PRO ✨</Text>
+                </View>
+              </View>
+
+              <View style={styles.rowDivider} />
+
+              {/* Row 2 — Manage Subscription */}
+              <AnimatedPressable onPress={handleManageSubscription} style={styles.cardRow}>
+                <View style={styles.cardRowLeft}>
+                  <View style={[styles.iconWrap, { backgroundColor: '#4F8EF722' }]}>
+                    <ExternalLink size={18} color="#4F8EF7" />
+                  </View>
+                  <View>
+                    <Text style={styles.cardRowLabel}>Manage Subscription</Text>
+                    <Text style={styles.cardRowSub}>Cancel, upgrade or change plan</Text>
+                  </View>
+                </View>
+                <ChevronRight size={18} color={COLORS.textTertiary} />
+              </AnimatedPressable>
+
+              <View style={styles.rowDivider} />
+
+              {/* Row 3 — Restore Purchases */}
+              <AnimatedPressable onPress={handleRestorePurchases} style={styles.cardRow}>
+                <View style={styles.cardRowLeft}>
+                  <View style={[styles.iconWrap, { backgroundColor: '#A855F722' }]}>
+                    {isRestoring ? (
+                      <ActivityIndicator size="small" color="#A855F7" />
+                    ) : (
+                      <RefreshCw size={18} color="#A855F7" />
+                    )}
+                  </View>
+                  <View>
+                    <Text style={styles.cardRowLabel}>{isRestoring ? 'Restoring…' : 'Restore Purchases'}</Text>
+                    <Text style={styles.cardRowSub}>Already subscribed on another device?</Text>
+                  </View>
+                </View>
+                {!isRestoring && <ChevronRight size={18} color={COLORS.textTertiary} />}
+              </AnimatedPressable>
+            </>
+          ) : (
+            /* Upgrade to Pro row */
+            <AnimatedPressable
+              onPress={() => {
+                console.log('[Account] Upgrade to Pro pressed');
+                router.push('/paywall');
+              }}
+              style={styles.cardRow}
+            >
+              <View style={styles.cardRowLeft}>
+                <View style={[styles.iconWrap, { backgroundColor: COLORS.accent + '22' }]}>
+                  <Text style={styles.iconEmoji}>👑</Text>
+                </View>
+                <View>
+                  <Text style={[styles.cardRowLabel, { fontWeight: '700' }]}>Upgrade to Pro</Text>
+                  <Text style={styles.cardRowSub}>Unlock 3D View, unlimited projects & more</Text>
+                </View>
+              </View>
+              <ChevronRight size={18} color={COLORS.textTertiary} />
+            </AnimatedPressable>
+          )}
         </View>
       </View>
 
@@ -795,5 +908,20 @@ const styles = StyleSheet.create({
     color: COLORS.success,
     fontSize: 12,
     fontWeight: '600',
+  },
+  proBadge: {
+    backgroundColor: COLORS.accent + '22',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  proBadgeText: {
+    color: COLORS.accent,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  iconEmoji: {
+    fontSize: 18,
   },
 });

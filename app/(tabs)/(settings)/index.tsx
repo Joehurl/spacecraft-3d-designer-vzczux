@@ -7,6 +7,8 @@ import {
   Switch,
   Animated,
   Alert,
+  Linking,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -561,6 +563,27 @@ export default function SettingsScreen() {
             </View>
             <ChevronRight size={18} color={COLORS.textTertiary} />
           </AnimatedPressable>
+
+          <View style={styles.divider} />
+
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Settings] Manage subscription pressed');
+              const url = Platform.OS === 'android'
+                ? 'https://play.google.com/store/account/subscriptions'
+                : 'https://apps.apple.com/account/subscriptions';
+              Linking.openURL(url);
+            }}
+            style={styles.settingRow}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, { backgroundColor: COLORS.accent + '22' }]}>
+                <Text style={styles.settingIconEmoji}>👑</Text>
+              </View>
+              <Text style={styles.settingLabel}>Manage Subscription</Text>
+            </View>
+            <ChevronRight size={18} color={COLORS.textTertiary} />
+          </AnimatedPressable>
         </View>
       </View>
 
@@ -761,6 +784,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F0',
     borderWidth: 1,
     borderColor: COLORS.border,
+  },
+  settingIconEmoji: {
+    fontSize: 18,
   },
   footer: {
     color: COLORS.textTertiary,
