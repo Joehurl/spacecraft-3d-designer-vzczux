@@ -45,8 +45,7 @@
       "expo-web-browser",
       "expo-secure-store",
       "expo-camera",
-      ["expo-media-library", { "photosPermission": "Allow SpaceCraft 3D to save floor plan exports to your photo library." }],
-      "expo-clipboard"
+      ["expo-media-library", { "photosPermission": "Allow SpaceCraft 3D to save floor plan exports to your photo library." }]
     ],
     "scheme": "spacecraft3d",
     "experiments": {
