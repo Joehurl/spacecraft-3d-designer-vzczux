@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.spacecraft.app",
+      "bundleIdentifier": "com.spacecraftdesign.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "SpaceCraft 3D uses your camera to place furniture in your real room using AR.",
@@ -26,7 +26,7 @@
         "foregroundImage": "./assets/images/app-icon-frq.png",
         "backgroundColor": "#0A0E1A"
       },
-      "package": "com.spacecraft.app",
+      "package": "com.spacecraftdesign.app",
       "versionCode": 3,
       "permissions": [
         "android.permission.CAMERA",
