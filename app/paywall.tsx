@@ -11,7 +11,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   Platform,
@@ -23,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { PurchasesPackage } from 'react-native-purchases';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { AnimatedPressable } from '@/components/AnimatedPressable';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -159,9 +159,9 @@ export default function PaywallScreen() {
           style={StyleSheet.absoluteFill}
         />
         <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
-          <TouchableOpacity style={styles.closeBtn} onPress={handleClose}>
+          <AnimatedPressable style={styles.closeBtn} onPress={handleClose}>
             <Text style={styles.closeBtnText}>✕</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
           <View style={styles.subscribedContent}>
             <View style={styles.crownCircle}>
               <Text style={styles.crownEmoji}>👑</Text>
@@ -182,7 +182,7 @@ export default function PaywallScreen() {
                 </View>
               ))}
             </View>
-            <TouchableOpacity style={styles.exploreBtn} onPress={handleClose}>
+            <AnimatedPressable style={styles.exploreBtn} onPress={handleClose}>
               <LinearGradient
                 colors={[C.primary, '#2563EB']}
                 start={{ x: 0, y: 0 }}
@@ -191,7 +191,7 @@ export default function PaywallScreen() {
               >
                 <Text style={styles.exploreBtnText}>Start Designing</Text>
               </LinearGradient>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
         </SafeAreaView>
       </View>
@@ -239,9 +239,9 @@ export default function PaywallScreen() {
 
       <SafeAreaView edges={['top', 'bottom']} style={styles.safeArea}>
         {/* Close button */}
-        <TouchableOpacity style={styles.closeBtn} onPress={handleClose}>
+        <AnimatedPressable style={styles.closeBtn} onPress={handleClose}>
           <Text style={styles.closeBtnText}>✕</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
 
         <ScrollView
           style={styles.scroll}
@@ -300,11 +300,10 @@ export default function PaywallScreen() {
                 const isSelected = selectedPackage?.identifier === pkg.identifier;
                 const isAnnual = isAnnualPkg(pkg);
                 return (
-                  <TouchableOpacity
+                  <AnimatedPressable
                     key={pkg.identifier}
                     style={[styles.planCard, isSelected && styles.planCardSelected]}
                     onPress={() => handleSelectPackage(pkg)}
-                    activeOpacity={0.85}
                   >
                     {isSelected && (
                       <LinearGradient
@@ -342,7 +341,7 @@ export default function PaywallScreen() {
                         </Text>
                       </View>
                     </View>
-                  </TouchableOpacity>
+                  </AnimatedPressable>
                 );
               })}
             </View>
@@ -356,7 +355,7 @@ export default function PaywallScreen() {
                 Use a development or production build to test purchases.
               </Text>
               {__DEV__ && (
-                <TouchableOpacity
+                <AnimatedPressable
                   style={styles.devMockBtn}
                   onPress={async () => {
                     console.log('[Paywall] Dev simulate purchase');
@@ -365,7 +364,7 @@ export default function PaywallScreen() {
                   }}
                 >
                   <Text style={styles.devMockText}>Dev: Simulate Purchase</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               )}
             </View>
           )}
@@ -377,9 +376,9 @@ export default function PaywallScreen() {
         {__DEV__ && (
           <View style={styles.devBanner}>
             <Text style={styles.devBannerLabel}>DEV MODE</Text>
-            <TouchableOpacity style={styles.devSimulateBtn} onPress={handleSimulatePurchase}>
+            <AnimatedPressable style={styles.devSimulateBtn} onPress={handleSimulatePurchase}>
               <Text style={styles.devSimulateBtnText}>⚡ Simulate Subscription</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
         )}
 
@@ -387,10 +386,9 @@ export default function PaywallScreen() {
         <View style={styles.bottomBar}>
           {isWeb ? (
             <>
-              <TouchableOpacity
+              <AnimatedPressable
                 style={[styles.ctaBtn, (!selectedPackage || webMockState === 'processing') && styles.ctaBtnDisabled]}
                 onPress={handleWebMockPurchase}
-                disabled={!selectedPackage || webMockState === 'processing'}
               >
                 <LinearGradient
                   colors={webMockState === 'processing' ? [C.surfaceTertiary, C.surfaceTertiary] : [C.primary, '#2563EB']}
@@ -404,31 +402,30 @@ export default function PaywallScreen() {
                     <Text style={styles.ctaBtnText}>{ctaLabel}</Text>
                   )}
                 </LinearGradient>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.restoreBtn} onPress={handleRestore} disabled={restoring}>
+              </AnimatedPressable>
+              <AnimatedPressable style={styles.restoreBtn} onPress={handleRestore}>
                 {restoring ? (
                   <ActivityIndicator size="small" color={C.textSecondary} />
                 ) : (
                   <Text style={styles.restoreBtnText}>Restore Purchases</Text>
                 )}
-              </TouchableOpacity>
+              </AnimatedPressable>
               <View style={styles.legalLinksRow}>
-                <TouchableOpacity onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}>
+                <AnimatedPressable onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}>
                   <Text style={styles.legalLink}>Terms of Service</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
                 <Text style={styles.legalLinkSep}>·</Text>
-                <TouchableOpacity onPress={() => Linking.openURL('https://spacecraftapp.com/privacy')}>
+                <AnimatedPressable onPress={() => Linking.openURL('https://spacecraftapp.com/privacy')}>
                   <Text style={styles.legalLink}>Privacy Policy</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               </View>
               <Text style={styles.legalText}>Preview mode — purchases available in the mobile app</Text>
             </>
           ) : (
             <>
-              <TouchableOpacity
+              <AnimatedPressable
                 style={[styles.ctaBtn, (!selectedPackage || purchasing) && styles.ctaBtnDisabled]}
                 onPress={handlePurchase}
-                disabled={!selectedPackage || purchasing}
               >
                 <LinearGradient
                   colors={purchasing ? [C.surfaceTertiary, C.surfaceTertiary] : [C.primary, '#2563EB']}
@@ -442,24 +439,24 @@ export default function PaywallScreen() {
                     <Text style={styles.ctaBtnText}>{ctaLabel}</Text>
                   )}
                 </LinearGradient>
-              </TouchableOpacity>
+              </AnimatedPressable>
 
-              <TouchableOpacity style={styles.restoreBtn} onPress={handleRestore} disabled={restoring}>
+              <AnimatedPressable style={styles.restoreBtn} onPress={handleRestore}>
                 {restoring ? (
                   <ActivityIndicator size="small" color={C.textSecondary} />
                 ) : (
                   <Text style={styles.restoreBtnText}>Restore Purchases</Text>
                 )}
-              </TouchableOpacity>
+              </AnimatedPressable>
 
               <View style={styles.legalLinksRow}>
-                <TouchableOpacity onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}>
+                <AnimatedPressable onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}>
                   <Text style={styles.legalLink}>Terms of Service</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
                 <Text style={styles.legalLinkSep}>·</Text>
-                <TouchableOpacity onPress={() => Linking.openURL('https://spacecraftapp.com/privacy')}>
+                <AnimatedPressable onPress={() => Linking.openURL('https://spacecraftapp.com/privacy')}>
                   <Text style={styles.legalLink}>Privacy Policy</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               </View>
 
               <Text style={styles.legalText}>
@@ -482,11 +479,11 @@ export default function PaywallScreen() {
                   {`⚠️ Development test only.\n\nPackage: ${selectedPackage?.identifier}\nPrice: ${selectedPackage?.product.priceString || 'N/A'}`}
                 </Text>
                 <View style={styles.dialogDivider} />
-                <TouchableOpacity style={styles.dialogBtn} onPress={() => setWebMockDialogState('failed')}>
+                <AnimatedPressable style={styles.dialogBtn} onPress={() => setWebMockDialogState('failed')}>
                   <Text style={[styles.dialogBtnText, { color: '#EF4444' }]}>Test Failed Purchase</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
                 <View style={styles.dialogDivider} />
-                <TouchableOpacity
+                <AnimatedPressable
                   style={styles.dialogBtn}
                   onPress={() => {
                     setWebMockDialogState('hidden');
@@ -495,11 +492,11 @@ export default function PaywallScreen() {
                   }}
                 >
                   <Text style={[styles.dialogBtnText, { color: C.primary }]}>Test Valid Purchase</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
                 <View style={styles.dialogDivider} />
-                <TouchableOpacity style={styles.dialogBtn} onPress={() => setWebMockDialogState('hidden')}>
+                <AnimatedPressable style={styles.dialogBtn} onPress={() => setWebMockDialogState('hidden')}>
                   <Text style={[styles.dialogBtnText, { color: C.primary }]}>Cancel</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               </>
             )}
             {webMockDialogState === 'failed' && (
@@ -507,9 +504,9 @@ export default function PaywallScreen() {
                 <Text style={styles.dialogTitle}>Purchase Failed</Text>
                 <Text style={styles.dialogBody}>Test failure — no real transaction occurred.</Text>
                 <View style={styles.dialogDivider} />
-                <TouchableOpacity style={styles.dialogBtn} onPress={() => setWebMockDialogState('hidden')}>
+                <AnimatedPressable style={styles.dialogBtn} onPress={() => setWebMockDialogState('hidden')}>
                   <Text style={[styles.dialogBtnText, { color: C.primary }]}>OK</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               </>
             )}
           </View>

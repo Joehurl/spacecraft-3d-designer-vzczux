@@ -102,6 +102,7 @@ export default function CatalogScreen() {
   }, [projects]);
 
   const [search, setSearch] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [showFilter, setShowFilter] = useState(false);
   const [showSort, setShowSort] = useState(false);
@@ -112,6 +113,20 @@ export default function CatalogScreen() {
   const [filterNew, setFilterNew] = useState(false);
   const [activeCollection, setActiveCollection] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('popular');
+
+  const searchScaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handleSearchFocus = useCallback(() => {
+    console.log('[Catalog] Search input focused');
+    setSearchFocused(true);
+    Animated.timing(searchScaleAnim, { toValue: 1.01, duration: 150, useNativeDriver: true }).start();
+  }, [searchScaleAnim]);
+
+  const handleSearchBlur = useCallback(() => {
+    console.log('[Catalog] Search input blurred');
+    setSearchFocused(false);
+    Animated.timing(searchScaleAnim, { toValue: 1, duration: 150, useNativeDriver: true }).start();
+  }, [searchScaleAnim]);
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 800);
@@ -271,8 +286,16 @@ export default function CatalogScreen() {
       </Animated.View>
 
       {/* Search */}
-      <View style={styles.searchWrap}>
-        <Search size={18} color={COLORS.textTertiary} />
+      <Animated.View
+        style={[
+          styles.searchWrap,
+          {
+            borderColor: searchFocused ? COLORS.primary : COLORS.border,
+            transform: [{ scale: searchScaleAnim }],
+          },
+        ]}
+      >
+        <Search size={18} color={searchFocused ? COLORS.primary : COLORS.textTertiary} />
         <TextInput
           style={styles.searchInput}
           placeholder={`Search ${FURNITURE_CATALOG.length}+ items...`}
@@ -282,6 +305,8 @@ export default function CatalogScreen() {
             console.log('[Catalog] Search query:', text);
             setSearch(text);
           }}
+          onFocus={handleSearchFocus}
+          onBlur={handleSearchBlur}
         />
         {search.length > 0 && (
           <AnimatedPressable onPress={() => {
@@ -291,7 +316,7 @@ export default function CatalogScreen() {
             <X size={16} color={COLORS.textTertiary} />
           </AnimatedPressable>
         )}
-      </View>
+      </Animated.View>
 
       <FlatList
         data={loading ? [] : filtered}
@@ -463,7 +488,9 @@ export default function CatalogScreen() {
         ListEmptyComponent={
           !loading ? (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyEmoji}>🔍</Text>
+              <View style={styles.emptyIconCircle}>
+                <Search size={32} color={COLORS.primary} />
+              </View>
               <Text style={styles.emptyTitle}>No items found</Text>
               <Text style={styles.emptySubtitle}>Try adjusting your search or filters</Text>
               <AnimatedPressable
@@ -970,8 +997,13 @@ const styles = StyleSheet.create({
     paddingVertical: 48,
     gap: 8,
   },
-  emptyEmoji: {
-    fontSize: 48,
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: COLORS.primaryMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 8,
   },
   emptyTitle: {

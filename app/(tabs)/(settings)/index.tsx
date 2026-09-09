@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 import {
   Ruler,
   Grid3X3,
@@ -29,6 +30,7 @@ import {
   Cloud,
   UserCircle,
   History,
+  MessageCircle,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -58,9 +60,15 @@ export default function SettingsScreen() {
   const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
 
   const headerOpacity = useRef(new Animated.Value(0)).current;
+  const contentOpacity = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.timing(headerOpacity, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-  }, [headerOpacity]);
+    Animated.parallel([
+      Animated.timing(headerOpacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+      Animated.timing(contentOpacity, { toValue: 1, duration: 500, delay: 120, useNativeDriver: true }),
+    ]).start();
+  }, [headerOpacity, contentOpacity]);
+
+  const appVersion = Constants.expoConfig?.version ?? '1.0.3';
 
   const totalRooms = projects.reduce((sum, p) => sum + p.rooms.length, 0);
   const totalFurniture = projects.reduce((sum, p) =>
@@ -100,6 +108,8 @@ export default function SettingsScreen() {
       <Animated.View style={[styles.header, { opacity: headerOpacity }]}>
         <Text style={styles.headerTitle}>Settings</Text>
       </Animated.View>
+
+      <Animated.View style={{ opacity: contentOpacity }}>
 
       {/* SpaceCraft Pro Banner — shown only when not subscribed */}
       {!isSubscribed && (
@@ -516,13 +526,19 @@ export default function SettingsScreen() {
             <View style={styles.settingLeft}>
               <Text style={styles.settingLabel}>App version</Text>
             </View>
-            <Text style={styles.settingValue}>1.0.0</Text>
+            <Text style={styles.settingValue}>{appVersion}</Text>
           </View>
 
           <View style={styles.divider} />
 
           <AnimatedPressable
-            onPress={() => console.log('[Settings] Rate app pressed')}
+            onPress={() => {
+              const url = Platform.OS === 'ios'
+                ? 'https://apps.apple.com/app/id6741960498'
+                : 'https://play.google.com/store/apps/details?id=com.spacecraft.app';
+              console.log('[Settings] Rate app pressed — opening:', url);
+              Linking.openURL(url);
+            }}
             style={styles.settingRow}
           >
             <View style={styles.settingLeft}>
@@ -537,7 +553,28 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
 
           <AnimatedPressable
-            onPress={() => console.log('[Settings] Privacy policy pressed')}
+            onPress={() => {
+              console.log('[Settings] Contact support pressed');
+              Linking.openURL('mailto:support@spacecraft3d.app');
+            }}
+            style={styles.settingRow}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, { backgroundColor: COLORS.success + '22' }]}>
+                <MessageCircle size={18} color={COLORS.success} />
+              </View>
+              <Text style={styles.settingLabel}>Contact Support</Text>
+            </View>
+            <ChevronRight size={18} color={COLORS.textTertiary} />
+          </AnimatedPressable>
+
+          <View style={styles.divider} />
+
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Settings] Privacy policy pressed — opening URL');
+              Linking.openURL('https://spacecraft3d.app/privacy');
+            }}
             style={styles.settingRow}
           >
             <View style={styles.settingLeft}>
@@ -552,7 +589,10 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
 
           <AnimatedPressable
-            onPress={() => console.log('[Settings] Terms pressed')}
+            onPress={() => {
+              console.log('[Settings] Terms of service pressed — opening URL');
+              Linking.openURL('https://spacecraft3d.app/terms');
+            }}
             style={styles.settingRow}
           >
             <View style={styles.settingLeft}>
@@ -588,6 +628,7 @@ export default function SettingsScreen() {
       </View>
 
       <Text style={styles.footer}>SpaceCraft 3D · Made with ❤️</Text>
+      </Animated.View>
     </ScrollView>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,8 @@ import {
   FlatList,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   Animated,
   Alert,
-  Modal,
-  Pressable,
   Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -47,10 +44,50 @@ const ROOM_TYPES = [
   { id: 'dining', label: 'Dining Room', emoji: '🍽️' },
 ];
 
+// ─── Animated project card with staggered entrance ───────────────────────────
+
+interface AnimatedProjectCardProps {
+  item: FloorPlan;
+  index: number;
+  versionBadge: string;
+  onPress: () => void;
+  onLongPress: () => void;
+}
+
+function AnimatedProjectCard({ item, index, versionBadge, onPress, onLongPress }: AnimatedProjectCardProps) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(16)).current;
+
+  useEffect(() => {
+    const delay = Math.min(index * 60, 300);
+    Animated.parallel([
+      Animated.timing(opacity, { toValue: 1, duration: 350, delay, useNativeDriver: true }),
+      Animated.timing(translateY, { toValue: 0, duration: 350, delay, useNativeDriver: true }),
+    ]).start();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <Animated.View style={{ width: CARD_WIDTH, opacity, transform: [{ translateY }] }}>
+      <ProjectCard
+        project={item}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        index={index}
+      />
+      <View style={styles.versionBadge} pointerEvents="none">
+        <Text style={styles.versionBadgeText}>{versionBadge}</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ─── Main screen ──────────────────────────────────────────────────────────────
+
 export default function ProjectsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { projects, createProject, deleteProject, duplicateProject, setActiveProject } = useFloorPlan();
+  const { projects, createProject, deleteProject, duplicateProject, updateProject, setActiveProject } = useFloorPlan();
   const { getSnapshotsForProject } = useHistory();
   const { user, isLoggedIn } = useUser();
 
@@ -59,6 +96,15 @@ export default function ProjectsScreen() {
   const [selectedStyle, setSelectedStyle] = useState<FloorPlan['style']>('modern');
   const [contextProject, setContextProject] = useState<FloorPlan | null>(null);
   const [showContext, setShowContext] = useState(false);
+
+  // Rename state
+  const [showRename, setShowRename] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+
+  // Undo delete state
+  const [pendingDelete, setPendingDelete] = useState<FloorPlan | null>(null);
+  const undoOpacity = useRef(new Animated.Value(0)).current;
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const headerOpacity = useRef(new Animated.Value(0)).current;
   const headerTranslate = useRef(new Animated.Value(-10)).current;
@@ -70,6 +116,36 @@ export default function ProjectsScreen() {
     ]).start();
   }, [headerOpacity, headerTranslate]);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    };
+  }, []);
+
+  function showUndoToast(project: FloorPlan) {
+    setPendingDelete(project);
+    undoOpacity.setValue(0);
+    Animated.timing(undoOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+
+    deleteTimerRef.current = setTimeout(() => {
+      console.log('[Projects] Undo timer expired — deleting project:', project.id);
+      deleteProject(project.id);
+      Animated.timing(undoOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
+        setPendingDelete(null);
+      });
+    }, 4000);
+  }
+
+  function handleUndoDelete() {
+    if (!pendingDelete) return;
+    console.log('[Projects] Undo delete — restoring project:', pendingDelete.id);
+    if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    Animated.timing(undoOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
+      setPendingDelete(null);
+    });
+  }
+
   function handleCreateProject() {
     const name = projectName.trim() || 'Untitled Project';
     console.log('[Projects] Create project:', name, selectedStyle);
@@ -80,11 +156,11 @@ export default function ProjectsScreen() {
     router.push(`/editor/${project.id}`);
   }
 
-  function handleOpenProject(project: FloorPlan) {
+  const handleOpenProject = useCallback((project: FloorPlan) => {
     console.log('[Projects] Open project:', project.id, project.name);
     setActiveProject(project.id);
     router.push(`/editor/${project.id}`);
-  }
+  }, [router, setActiveProject]);
 
   function handleLongPress(project: FloorPlan) {
     console.log('[Projects] Long press project:', project.id);
@@ -94,10 +170,11 @@ export default function ProjectsScreen() {
 
   function handleDelete() {
     if (!contextProject) return;
-    console.log('[Projects] Delete project:', contextProject.id);
-    deleteProject(contextProject.id);
+    console.log('[Projects] Delete project (pending undo):', contextProject.id);
+    const toDelete = contextProject;
     setShowContext(false);
     setContextProject(null);
+    showUndoToast(toDelete);
   }
 
   function handleDuplicate() {
@@ -108,24 +185,37 @@ export default function ProjectsScreen() {
     setContextProject(null);
   }
 
-  const renderProject = ({ item, index }: { item: FloorPlan; index: number }) => {
+  function handleRenamePress() {
+    if (!contextProject) return;
+    console.log('[Projects] Rename pressed for project:', contextProject.id);
+    setRenameValue(contextProject.name);
+    setShowContext(false);
+    setTimeout(() => setShowRename(true), 300);
+  }
+
+  function handleRenameSave() {
+    if (!contextProject) return;
+    const newName = renameValue.trim() || contextProject.name;
+    console.log('[Projects] Save rename:', contextProject.id, '->', newName);
+    updateProject(contextProject.id, { name: newName });
+    setShowRename(false);
+    setContextProject(null);
+  }
+
+  const renderProject = useCallback(({ item, index }: { item: FloorPlan; index: number }) => {
     const snaps = getSnapshotsForProject(item.id);
     const version = snaps.length > 0 ? Math.max(...snaps.map(s => s.version)) : 1;
     const versionBadge = 'v' + version;
     return (
-      <View style={{ width: CARD_WIDTH }}>
-        <ProjectCard
-          project={item}
-          onPress={() => handleOpenProject(item)}
-          onLongPress={() => handleLongPress(item)}
-          index={index}
-        />
-        <View style={styles.versionBadge} pointerEvents="none">
-          <Text style={styles.versionBadgeText}>{versionBadge}</Text>
-        </View>
-      </View>
+      <AnimatedProjectCard
+        item={item}
+        index={index}
+        versionBadge={versionBadge}
+        onPress={() => handleOpenProject(item)}
+        onLongPress={() => handleLongPress(item)}
+      />
     );
-  };
+  }, [getSnapshotsForProject, handleOpenProject]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -294,6 +384,16 @@ export default function ProjectsScreen() {
         </AnimatedPressable>
       )}
 
+      {/* Undo delete toast */}
+      {pendingDelete && (
+        <Animated.View style={[styles.undoToast, { bottom: insets.bottom + 110, opacity: undoOpacity }]}>
+          <Text style={styles.undoText}>Project deleted</Text>
+          <AnimatedPressable onPress={handleUndoDelete} style={styles.undoBtn}>
+            <Text style={styles.undoBtnText}>Undo</Text>
+          </AnimatedPressable>
+        </Animated.View>
+      )}
+
       {/* Create Project Sheet */}
       <BottomSheet visible={showCreate} onClose={() => setShowCreate(false)} maxHeight={560}>
         <ScrollView contentContainerStyle={styles.sheetContent} showsVerticalScrollIndicator={false}>
@@ -368,16 +468,39 @@ export default function ProjectsScreen() {
         </ScrollView>
       </BottomSheet>
 
+      {/* Rename Sheet */}
+      <BottomSheet visible={showRename} onClose={() => { setShowRename(false); setContextProject(null); }} maxHeight={280}>
+        <View style={styles.sheetContent}>
+          <Text style={styles.sheetTitle}>Rename Project</Text>
+          <TextInput
+            style={styles.input}
+            value={renameValue}
+            onChangeText={setRenameValue}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={handleRenameSave}
+            placeholderTextColor={COLORS.textTertiary}
+            placeholder="Project name"
+          />
+          <AnimatedPressable onPress={handleRenameSave} style={styles.createBtn}>
+            <Text style={styles.createBtnText}>Save</Text>
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => { setShowRename(false); setContextProject(null); }}
+            style={styles.templateBtn}
+          >
+            <Text style={styles.templateBtnText}>Cancel</Text>
+          </AnimatedPressable>
+        </View>
+      </BottomSheet>
+
       {/* Context Menu */}
       <BottomSheet visible={showContext} onClose={() => setShowContext(false)} maxHeight={380}>
         <View style={styles.contextContent}>
           <Text style={styles.contextTitle} numberOfLines={1}>{contextProject?.name}</Text>
 
           <AnimatedPressable
-            onPress={() => {
-              console.log('[Projects] Context: rename');
-              setShowContext(false);
-            }}
+            onPress={handleRenamePress}
             style={styles.contextItem}
           >
             <Pencil size={20} color={COLORS.text} />
@@ -667,6 +790,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 4px 20px rgba(79,142,247,0.4)',
+  },
+  // Undo toast
+  undoToast: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.surfaceSecondary,
+    borderRadius: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+  },
+  undoText: {
+    color: COLORS.text,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  undoBtn: {
+    backgroundColor: COLORS.primaryMuted,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '44',
+  },
+  undoBtnText: {
+    color: COLORS.primary,
+    fontSize: 14,
+    fontWeight: '700',
   },
   // Sheet
   sheetContent: {
