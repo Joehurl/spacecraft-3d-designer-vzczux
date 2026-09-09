@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Plus, MoreHorizontal, Trash2, Copy, Pencil, Share2, ShoppingCart, Ruler, History, Palette } from 'lucide-react-native';
+import { Plus, MoreHorizontal, Trash2, Copy, Pencil, Share2, ShoppingCart, Ruler, History, Palette, DollarSign, Sparkles } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/Colors';
 import { useFloorPlan } from '@/contexts/FloorPlanContext';
@@ -495,7 +495,7 @@ export default function ProjectsScreen() {
       </BottomSheet>
 
       {/* Context Menu */}
-      <BottomSheet visible={showContext} onClose={() => setShowContext(false)} maxHeight={380}>
+      <BottomSheet visible={showContext} onClose={() => setShowContext(false)} maxHeight={520}>
         <View style={styles.contextContent}>
           <Text style={styles.contextTitle} numberOfLines={1}>{contextProject?.name}</Text>
 
@@ -575,6 +575,32 @@ export default function ProjectsScreen() {
           >
             <Palette size={20} color="#A855F7" />
             <Text style={styles.contextItemText}>Mood Board</Text>
+          </AnimatedPressable>
+
+          <AnimatedPressable
+            onPress={() => {
+              if (!contextProject) return;
+              console.log('[Projects] Context: budget tracker for project:', contextProject.id);
+              setShowContext(false);
+              router.push({ pathname: '/budget-tracker', params: { projectId: contextProject.id } });
+            }}
+            style={styles.contextItem}
+          >
+            <DollarSign size={20} color={COLORS.success} />
+            <Text style={styles.contextItemText}>Budget</Text>
+          </AnimatedPressable>
+
+          <AnimatedPressable
+            onPress={() => {
+              if (!contextProject) return;
+              console.log('[Projects] Context: complete the look for project:', contextProject.id);
+              setShowContext(false);
+              router.push({ pathname: '/complete-the-look', params: { projectId: contextProject.id } });
+            }}
+            style={styles.contextItem}
+          >
+            <Sparkles size={20} color={COLORS.warning} />
+            <Text style={styles.contextItemText}>Complete the Look</Text>
           </AnimatedPressable>
 
           <AnimatedPressable onPress={handleDelete} style={styles.contextItem}>

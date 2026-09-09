@@ -199,6 +199,22 @@ export default function RootLayout() {
                           name="templates"
                           options={{ headerShown: false, presentation: 'fullScreenModal' }}
                         />
+                        <Stack.Screen
+                          name="budget-tracker"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="wishlist"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="palette-extractor"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
+                        <Stack.Screen
+                          name="complete-the-look"
+                          options={{ headerShown: false, presentation: 'modal' }}
+                        />
                       </Stack>
                       <SystemBars style="light" />
                     </GestureHandlerRootView>

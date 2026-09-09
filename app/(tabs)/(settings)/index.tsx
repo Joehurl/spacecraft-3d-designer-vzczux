@@ -31,6 +31,7 @@ import {
   UserCircle,
   History,
   MessageCircle,
+  Heart,
 } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -442,6 +443,27 @@ export default function SettingsScreen() {
               <View>
                 <Text style={styles.settingLabel}>Shopping List</Text>
                 <Text style={styles.settingDesc}>Generate buy list from designs</Text>
+              </View>
+            </View>
+            <ChevronRight size={18} color={COLORS.textTertiary} />
+          </AnimatedPressable>
+
+          <View style={styles.divider} />
+
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Settings] Wishlist pressed');
+              router.push('/wishlist');
+            }}
+            style={styles.settingRow}
+          >
+            <View style={styles.settingLeft}>
+              <View style={[styles.settingIcon, { backgroundColor: COLORS.danger + '22' }]}>
+                <Heart size={18} color={COLORS.danger} />
+              </View>
+              <View>
+                <Text style={styles.settingLabel}>Wishlist</Text>
+                <Text style={styles.settingDesc}>View your saved furniture items</Text>
               </View>
             </View>
             <ChevronRight size={18} color={COLORS.textTertiary} />

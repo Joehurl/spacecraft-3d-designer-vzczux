@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, SlidersHorizontal, Heart, X, ChevronDown, Sparkles, TrendingUp } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/Colors';
 import { FURNITURE_CATALOG, FURNITURE_CATEGORIES, CATEGORY_COLORS } from '@/data/furniture';
@@ -87,6 +88,7 @@ function CollectionCard({
 
 export default function CatalogScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { favorites, toggleFavorite, projects } = useFloorPlan();
 
   // Recommended for You — based on most recently edited project
@@ -258,6 +260,20 @@ export default function CatalogScreen() {
           <Text style={styles.headerSubtitle}>{FURNITURE_CATALOG.length}+ items</Text>
         </View>
         <View style={styles.headerActions}>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Catalog] Open wishlist');
+              router.push('/wishlist');
+            }}
+            style={styles.wishlistBtn}
+          >
+            <Heart size={18} color={COLORS.danger} fill={favorites.length > 0 ? COLORS.danger : 'none'} />
+            {favorites.length > 0 && (
+              <View style={styles.wishlistBadge}>
+                <Text style={styles.wishlistBadgeText}>{favorites.length}</Text>
+              </View>
+            )}
+          </AnimatedPressable>
           <AnimatedPressable
             onPress={() => {
               console.log('[Catalog] Open sort menu');
@@ -764,6 +780,35 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 12,
     fontWeight: '600',
+  },
+  wishlistBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.danger + '18',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.danger + '30',
+    position: 'relative',
+  },
+  wishlistBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: COLORS.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: COLORS.background,
+  },
+  wishlistBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
   },
   filterBtn: {
     width: 40,

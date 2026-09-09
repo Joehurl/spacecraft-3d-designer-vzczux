@@ -46,6 +46,7 @@ export interface Room {
   wallColor: string;
   width: number;
   height: number;
+  roomBudget?: number;
 }
 
 export interface FloorPlan {
@@ -57,6 +58,7 @@ export interface FloorPlan {
   createdAt: string;
   updatedAt: string;
   style: 'modern' | 'scandinavian' | 'industrial' | 'bohemian' | 'minimalist' | 'classic';
+  budget?: number;
 }
 
 export type FurnitureCategory =

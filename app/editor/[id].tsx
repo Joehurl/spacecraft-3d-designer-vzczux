@@ -33,6 +33,7 @@ import {
   History,
   Palette,
   Sparkles,
+  DollarSign,
 } from 'lucide-react-native';
 import { COLORS } from '@/constants/Colors';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -400,6 +401,33 @@ export default function EditorScreen() {
           </AnimatedPressable>
           <AnimatedPressable
             onPress={() => {
+              console.log('[Editor] Budget tracker pressed — project:', project.id);
+              router.push({ pathname: '/budget-tracker', params: { projectId: project.id } });
+            }}
+            style={styles.budgetBtn}
+          >
+            <DollarSign size={16} color={COLORS.success} />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Editor] Color palettes pressed — project:', project.id);
+              router.push({ pathname: '/palette-extractor', params: { projectId: project.id } });
+            }}
+            style={styles.paletteBtn}
+          >
+            <Palette size={16} color="#A855F7" />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
+              console.log('[Editor] Complete the look pressed — project:', project.id);
+              router.push({ pathname: '/complete-the-look', params: { projectId: project.id } });
+            }}
+            style={styles.completeBtn}
+          >
+            <Sparkles size={16} color={COLORS.warning} />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => {
               if (!isSubscribed) {
                 console.log('[Editor] 3D View blocked — not subscribed, opening paywall');
                 router.push('/paywall');
@@ -634,6 +662,36 @@ const styles = StyleSheet.create({
     color: '#A855F7',
     fontSize: 12,
     fontWeight: '700',
+  },
+  budgetBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.success + '18',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.success + '30',
+  },
+  paletteBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(168,85,247,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(168,85,247,0.3)',
+  },
+  completeBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.warning + '18',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.warning + '30',
   },
   recommendBtn: {
     flexDirection: 'row',

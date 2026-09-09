@@ -23,6 +23,8 @@ interface FloorPlanContextType {
   removePlacedItem: (projectId: string, roomId: string, itemId: string) => void;
   favorites: string[];
   toggleFavorite: (furnitureId: string) => void;
+  setBudget: (projectId: string, budget: number) => void;
+  setRoomBudget: (projectId: string, roomId: string, budget: number) => void;
   undoStack: FloorPlan[][];
   redoStack: FloorPlan[][];
   undo: () => void;
@@ -485,6 +487,16 @@ export function FloorPlanProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'TOGGLE_FAVORITE', furnitureId });
   }, []);
 
+  const setBudget = useCallback((projectId: string, budget: number) => {
+    console.log('[FloorPlan] Set budget for project:', projectId, budget);
+    dispatch({ type: 'UPDATE_PROJECT', id: projectId, updates: { budget } });
+  }, []);
+
+  const setRoomBudget = useCallback((projectId: string, roomId: string, budget: number) => {
+    console.log('[FloorPlan] Set room budget:', roomId, budget);
+    dispatch({ type: 'UPDATE_ROOM', projectId, roomId, updates: { roomBudget: budget } });
+  }, []);
+
   const undo = useCallback(() => {
     console.log('[FloorPlan] Undo');
     dispatch({ type: 'UNDO' });
@@ -514,6 +526,8 @@ export function FloorPlanProvider({ children }: { children: React.ReactNode }) {
       removePlacedItem,
       favorites: state.favorites,
       toggleFavorite,
+      setBudget,
+      setRoomBudget,
       undoStack: state.undoStack,
       redoStack: state.redoStack,
       undo,
