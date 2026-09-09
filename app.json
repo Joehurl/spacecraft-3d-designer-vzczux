@@ -5,14 +5,15 @@
     "version": "1.0.3",
     "description": "Design beautiful 2D and 3D floor plans. Furnish your space with 500+ furniture items, use AI to generate room layouts, and visualize in stunning 3D.",
     "orientation": "portrait",
-    "icon": "./assets/images/app-icon-frq.png",
+    "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/app-icon-frq.png",
+      "image": "./assets/images/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A0E1A"
     },
     "ios": {
+      "icon": "./assets/images/icon.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.spacecraft.app",
       "infoPlist": {
@@ -22,8 +23,9 @@
       }
     },
     "android": {
+      "icon": "./assets/images/icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/app-icon-frq.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#0A0E1A"
       },
       "package": "com.spacecraft.app",
