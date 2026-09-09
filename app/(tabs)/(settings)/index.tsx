@@ -557,7 +557,7 @@ export default function SettingsScreen() {
             onPress={() => {
               const url = Platform.OS === 'ios'
                 ? 'https://apps.apple.com/app/id6741960498'
-                : 'https://play.google.com/store/apps/details?id=com.spacecraft.app';
+                : 'https://play.google.com/store/apps/details?id=com.spacecraftdesigner.app';
               console.log('[Settings] Rate app pressed — opening:', url);
               Linking.openURL(url);
             }}
