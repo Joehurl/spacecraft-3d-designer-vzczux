@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "SpaceCraft 3D",
-    "slug": "spacecraft-3d",
-    "version": "1.0.3",
+    "slug": "spacecraft-3d-designer-vzczux",
+    "version": "1.0.6",
     "description": "Design beautiful 2D and 3D floor plans. Furnish your space with 500+ furniture items, use AI to generate room layouts, and visualize in stunning 3D.",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
