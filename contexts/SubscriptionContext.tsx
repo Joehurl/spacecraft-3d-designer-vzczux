@@ -102,7 +102,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       identifier: "$rc_monthly",
       product: {
         title: "Premium",
-        priceString: "$9.99/month",
+        priceString: "$5.99/month",
         description: "Unlock all premium features",
       },
     };

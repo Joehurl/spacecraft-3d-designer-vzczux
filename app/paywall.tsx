@@ -2,7 +2,7 @@
  * SpaceCraft 3D — Premium Paywall
  *
  * Full-screen modal with dark navy design system.
- * Monthly ($9.99) and Annual ($99.99, pre-selected) plans.
+ * Monthly ($5.99), Annual ($59.99, pre-selected), and Lifetime ($6.99).
  */
 
 import React, { useState } from 'react';
@@ -65,6 +65,7 @@ export default function PaywallScreen() {
   } = useSubscription();
 
   const [selectedPackage, setSelectedPackage] = useState<PurchasesPackage | null>(null);
+  const [lifetimeSelected, setLifetimeSelected] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   const [restoring, setRestoring] = useState(false);
   const [webMockState, setWebMockState] = useState<'idle' | 'processing'>('idle');
@@ -78,7 +79,20 @@ export default function PaywallScreen() {
     }
   }, [packages, selectedPackage]);
 
+  const handleLifetimePurchase = () => {
+    console.log('[Paywall] Lifetime purchase pressed');
+    Alert.alert(
+      'Lifetime Access',
+      'Lifetime purchase available in the full app release.',
+      [{ text: 'OK' }]
+    );
+  };
+
   const handlePurchase = async () => {
+    if (lifetimeSelected) {
+      handleLifetimePurchase();
+      return;
+    }
     if (!selectedPackage) return;
     console.log('[Paywall] Purchase pressed — package:', selectedPackage.identifier);
     try {
@@ -148,6 +162,13 @@ export default function PaywallScreen() {
   const handleSelectPackage = (pkg: PurchasesPackage) => {
     console.log('[Paywall] Plan selected:', pkg.identifier);
     setSelectedPackage(pkg);
+    setLifetimeSelected(false);
+  };
+
+  const handleSelectLifetime = () => {
+    console.log('[Paywall] Lifetime plan selected');
+    setSelectedPackage(null);
+    setLifetimeSelected(true);
   };
 
   // ── Already subscribed ──────────────────────────────────────────────────────
@@ -220,6 +241,7 @@ export default function PaywallScreen() {
     pkg.identifier.toLowerCase().includes('yearly');
 
   const ctaLabel = (() => {
+    if (lifetimeSelected) return 'Get Lifetime Access — $6.99';
     if (!selectedPackage) return 'Select a plan';
     const price = selectedPackage.product.priceString;
     return price ? `Start Free Trial` : 'Subscribe';
@@ -299,6 +321,11 @@ export default function PaywallScreen() {
               {packages.map((pkg) => {
                 const isSelected = selectedPackage?.identifier === pkg.identifier;
                 const isAnnual = isAnnualPkg(pkg);
+                const isLifetimePkg =
+                  pkg.identifier.toLowerCase().includes('lifetime') ||
+                  pkg.identifier.toLowerCase().includes('onetime') ||
+                  pkg.identifier.toLowerCase().includes('one_time');
+                if (isLifetimePkg) return null;
                 return (
                   <AnimatedPressable
                     key={pkg.identifier}
@@ -328,13 +355,13 @@ export default function PaywallScreen() {
                             {isAnnual ? 'Annual' : 'Monthly'}
                           </Text>
                           {isAnnual && (
-                            <Text style={styles.planSavings}>~$8.33 / month</Text>
+                            <Text style={styles.planSavings}>~$5.00 / month</Text>
                           )}
                         </View>
                       </View>
                       <View style={styles.planRight}>
                         <Text style={styles.planPrice}>
-                          {pkg.product.priceString || (isAnnual ? '$99.99' : '$9.99')}
+                          {pkg.product.priceString || (isAnnual ? '$59.99' : '$5.99')}
                         </Text>
                         <Text style={styles.planPeriod}>
                           {isAnnual ? '/ year' : '/ month'}
@@ -344,6 +371,39 @@ export default function PaywallScreen() {
                   </AnimatedPressable>
                 );
               })}
+
+              {/* ── Lifetime card (static fallback) ── */}
+              <AnimatedPressable
+                style={[styles.planCard, lifetimeSelected && styles.planCardLifetimeSelected]}
+                onPress={handleSelectLifetime}
+              >
+                {lifetimeSelected && (
+                  <LinearGradient
+                    colors={[C.gold + '22', C.gold + '11']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                )}
+                <View style={styles.lifetimeBadge}>
+                  <Text style={styles.lifetimeBadgeText}>ONE-TIME PURCHASE</Text>
+                </View>
+                <View style={styles.planCardInner}>
+                  <View style={styles.planLeft}>
+                    <View style={[styles.radioOuter, lifetimeSelected && styles.radioOuterLifetime]}>
+                      {lifetimeSelected && <View style={styles.radioInnerLifetime} />}
+                    </View>
+                    <View>
+                      <Text style={styles.planName}>Lifetime Access</Text>
+                      <Text style={styles.lifetimeSub}>Pay once, own forever</Text>
+                    </View>
+                  </View>
+                  <View style={styles.planRight}>
+                    <Text style={styles.planPrice}>$6.99</Text>
+                    <Text style={styles.planPeriod}>one-time</Text>
+                  </View>
+                </View>
+              </AnimatedPressable>
             </View>
           ) : (
             /* No packages — Expo Go notice */
@@ -387,8 +447,8 @@ export default function PaywallScreen() {
           {isWeb ? (
             <>
               <AnimatedPressable
-                style={[styles.ctaBtn, (!selectedPackage || webMockState === 'processing') && styles.ctaBtnDisabled]}
-                onPress={handleWebMockPurchase}
+                style={[styles.ctaBtn, ((!selectedPackage && !lifetimeSelected) || webMockState === 'processing') && styles.ctaBtnDisabled]}
+                onPress={lifetimeSelected ? handleLifetimePurchase : handleWebMockPurchase}
               >
                 <LinearGradient
                   colors={webMockState === 'processing' ? [C.surfaceTertiary, C.surfaceTertiary] : [C.primary, '#2563EB']}
@@ -424,7 +484,7 @@ export default function PaywallScreen() {
           ) : (
             <>
               <AnimatedPressable
-                style={[styles.ctaBtn, (!selectedPackage || purchasing) && styles.ctaBtnDisabled]}
+                style={[styles.ctaBtn, ((!selectedPackage && !lifetimeSelected) || purchasing) && styles.ctaBtnDisabled]}
                 onPress={handlePurchase}
               >
                 <LinearGradient
@@ -796,6 +856,38 @@ const styles = StyleSheet.create({
     color: C.textSecondary,
     fontSize: 12,
     marginTop: 1,
+  },
+  // ── Lifetime card ─────────────────────────────────────────────────────────
+  planCardLifetimeSelected: {
+    borderColor: '#F59E0B',
+  },
+  lifetimeBadge: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    alignSelf: 'flex-start',
+    borderBottomRightRadius: 10,
+  },
+  lifetimeBadgeText: {
+    color: '#0A0E1A',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+  lifetimeSub: {
+    color: '#F59E0B',
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  radioOuterLifetime: {
+    borderColor: '#F59E0B',
+  },
+  radioInnerLifetime: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#F59E0B',
   },
   // ── No packages ───────────────────────────────────────────────────────────
   noPackagesBox: {
