@@ -58,7 +58,8 @@
         {
           "photosPermission": "Allow SpaceCraft 3D to save floor plan exports to your photo library."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "scheme": "spacecraft3d",
     "experiments": {
