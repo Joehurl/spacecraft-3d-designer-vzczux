@@ -73,9 +73,13 @@ export default function PaywallScreen() {
 
   React.useEffect(() => {
     if (packages.length > 0 && !selectedPackage) {
-      // Pre-select the annual package (index 1 if available, else 0)
-      const annual = packages.length > 1 ? packages[1] : packages[0];
-      setSelectedPackage(annual);
+      // Pre-select the annual package if available, otherwise fall back to first
+      const annual = packages.find(p =>
+        p.identifier.toLowerCase().includes('annual') ||
+        p.identifier.toLowerCase().includes('year') ||
+        p.identifier.toLowerCase().includes('yearly')
+      );
+      setSelectedPackage(annual ?? packages[0]);
     }
   }, [packages, selectedPackage]);
 
@@ -244,7 +248,8 @@ export default function PaywallScreen() {
     if (lifetimeSelected) return 'Get Lifetime Access — $6.99';
     if (!selectedPackage) return 'Select a plan';
     const price = selectedPackage.product.priceString;
-    return price ? `Start Free Trial` : 'Subscribe';
+    const isAnnual = isAnnualPkg(selectedPackage);
+    return isAnnual ? `Subscribe Annually — ${price}` : `Subscribe Monthly — ${price}`;
   })();
 
   return (

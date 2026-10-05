@@ -31,6 +31,7 @@ export default function TabLayout() {
       <Tabs.Screen name="(catalog)" />
       <Tabs.Screen name="(explore)" />
       <Tabs.Screen name="(settings)" />
+      <Tabs.Screen name="(home)" options={{ href: null }} />
     </Tabs>
   );
 }
